@@ -4,7 +4,6 @@ go 1.22.12
 
 require (
 	github.com/beevik/etree v1.5.0
-	github.com/conductorone/baton-pingfed v0.0.2
 	github.com/conductorone/baton-sdk v0.2.66
 	github.com/crewjam/saml v0.4.14
 	github.com/google/uuid v1.6.0
@@ -12,7 +11,6 @@ require (
 	github.com/russellhaering/goxmldsig v1.4.0
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.63.3
 )
 
 require (
@@ -94,6 +92,7 @@ require (
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/grpc v1.63.3 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect

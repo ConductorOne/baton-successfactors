@@ -139,6 +139,9 @@ github.com/aws/smithy-go/tracing
 github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 github.com/aws/smithy-go/waiter
+# github.com/beevik/etree v1.5.0
+## explicit; go 1.21.0
+github.com/beevik/etree
 # github.com/benbjohnson/clock v1.3.5
 ## explicit; go 1.15
 github.com/benbjohnson/clock
@@ -187,6 +190,11 @@ github.com/conductorone/baton-sdk/pkg/uhttp
 github.com/conductorone/baton-sdk/pkg/us3
 github.com/conductorone/baton-sdk/pkg/ustrings
 github.com/conductorone/baton-sdk/pkg/utls
+# github.com/crewjam/saml v0.4.14
+## explicit; go 1.19
+github.com/crewjam/saml
+github.com/crewjam/saml/logger
+github.com/crewjam/saml/xmlenc
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -268,6 +276,9 @@ github.com/inconshreveable/mousetrap
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
 github.com/jmespath/go-jmespath
+# github.com/jonboulle/clockwork v0.2.2
+## explicit; go 1.13
+github.com/jonboulle/clockwork
 # github.com/klauspost/compress v1.17.11
 ## explicit; go 1.21
 github.com/klauspost/compress
@@ -283,6 +294,9 @@ github.com/lufia/plan9stats
 # github.com/magiconair/properties v1.8.9
 ## explicit; go 1.19
 github.com/magiconair/properties
+# github.com/mattermost/xml-roundtrip-validator v0.1.0
+## explicit; go 1.14
+github.com/mattermost/xml-roundtrip-validator
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
@@ -325,6 +339,11 @@ github.com/pquerna/xjwt
 # github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
 ## explicit; go 1.12
 github.com/remyoudompheng/bigfft
+# github.com/russellhaering/goxmldsig v1.4.0
+## explicit; go 1.15
+github.com/russellhaering/goxmldsig
+github.com/russellhaering/goxmldsig/etreeutils
+github.com/russellhaering/goxmldsig/types
 # github.com/sagikazarmark/locafero v0.6.0
 ## explicit; go 1.20
 github.com/sagikazarmark/locafero
@@ -432,6 +451,7 @@ golang.org/x/crypto/hkdf
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ripemd160
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf

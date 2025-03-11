@@ -54,7 +54,7 @@ func userResource(user client.Results) (*v2.Resource, error) {
 		profile["Company name"] = nil
 		profile["Country/Region"] = nil
 	} else {
-		profile["Company name"] = user.CompanyNav.Name_localized
+		profile["Company name"] = user.CompanyNav.NameLocalized
 		if reflect.ValueOf(user.CompanyNav.CountryNav).IsZero() {
 			profile["Country/Region"] = nil
 		} else {
@@ -84,14 +84,14 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	if reflect.ValueOf(user.CostCenterNav).IsZero() {
 		profile["Cost Center"] = nil
 	} else {
-		profile["Cost Center"] = user.CostCenterNav.Name_defaultValue
+		profile["Cost Center"] = user.CostCenterNav.NameDefaultValue
 	}
 	if reflect.ValueOf(user.PositionNav).IsZero() {
 		profile["Position code"] = nil
 		profile["Position jobTitle"] = nil
 	} else {
 		profile["Position code"] = user.PositionNav.Code
-		profile["Position jobTitle"] = user.PositionNav.ExternalName_defaultValue
+		profile["Position jobTitle"] = user.PositionNav.ExternalNameDefaultValue
 	}
 	if reflect.ValueOf(user.EmployeeClassNav).IsZero() {
 		profile["Employee Class"] = nil
@@ -115,33 +115,6 @@ func userResource(user client.Results) (*v2.Resource, error) {
 		profile["Manager userid"] = user.ManagerUserNav.UserId
 		profile["Manager Email"] = user.ManagerUserNav.Email
 	}
-	/*profile := map[string]interface{}{
-		"userID":                              user.UserId,
-		"Legal First Name":                    user.UserNav.FirstName,
-		"Legal Last Name":                     user.UserNav.LastName,
-		"middle name":                         user.UserNav.Mi,
-		"username":                            user.UserNav.Username,
-		"email":                               user.UserNav.Email,
-		"Hire Date":                           user.EmploymentNav.StartDate,
-		"Job Title":                           user.JobTitle,
-		"Local Job Title":                     user.LocalJobTitle,
-		"Company name":                        user.CompanyNav.Name_localized,
-		"Epicenter":                           user.BusinessUnitNav.Name,
-		"Function":                            user.DivisionNav.Name,
-		"Sub Function":                        user.DepartmentNav.Name,
-		"office lcoation":                     user.LocationNav.Name,
-		"Cost Center":                         user.CostCenterNav.Name_defaultValue,
-		"Position code":                       user.PositionNav.Code,
-		"Position jobTitle":                   user.PositionNav.ExternalName_defaultValue,
-		"Employee Class":                      user.EmployeeClassNav.PicklistLabels.Results[0].Label,
-		"Employee Status":                     user.EmplStatusNav.PicklistLabels.Results[0].Label,
-		"Manager userid":                      user.ManagerUserNav.UserId,
-		"Manager Email":                       user.ManagerUserNav.Email,
-		"Country/Region":                      user.CompanyNav.CountryNav.TerritoryName,
-		"Termination date":                    user.EmploymentNav.EndDate,
-		"FedRamp Authorized-User(US Persons)": user.UserNav.Custom07,
-	}*/
-	fmt.Println(profile)
 	userTraitOptions := []resource.UserTraitOption{
 		resource.WithUserProfile(profile),
 		resource.WithStatus(status),
@@ -176,8 +149,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 	i := 1
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
-		fmt.Println(i)
-		i = i + 1
+		i++
 		ur, err := userResource(user)
 		if err != nil {
 			return nil, "", nil, err

@@ -10,7 +10,6 @@ import (
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
 )
 
-// todo
 type Connector struct {
 	ctx         context.Context
 	instanceUrl string
@@ -55,7 +54,6 @@ func New(ctx context.Context,
 	subjectNameId string,
 	samlapikey string,
 ) (*Connector, error) {
-	//todo
 	SuccessFactorsClient, err := client.New(
 		ctx,
 		instanceURL,
@@ -75,6 +73,5 @@ func New(ctx context.Context,
 		ctx:         ctx,
 		instanceUrl: instanceURL,
 	}
-	//set up connector and SuccessFactor Client
 	return &connector, nil
 }

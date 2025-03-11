@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/beevik/etree"
@@ -46,17 +45,13 @@ func New(
 	privKey string,
 	issuerURL string,
 	subNID string,
-	SAMLAPIKey string,
+	samlAPIKey string,
 ) (*SuccessFactorsClient, error) {
 	if baseURL == "" {
 		return nil, fmt.Errorf("base URL is required")
 	}
-	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", baseURL+"/oauth/token", subNID, SAMLAPIKey, privKey, pubKey)
-	if signedAssertion == "" {
-
-	}
+	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", baseURL+"/oauth/token", subNID, samlAPIKey, privKey, pubKey)
 	if err != nil {
-		fmt.Printf("Error creating assertion: %v\n", err)
 		return nil, err
 	}
 	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, nil))
@@ -77,16 +72,11 @@ func New(
 		privKey:       privKey,
 		issuerURL:     issuerURL,
 		subNID:        subNID,
-		SAMLAPIKey:    SAMLAPIKey,
+		SAMLAPIKey:    samlAPIKey,
 		SAMLAssertion: signedAssertion,
 	}, nil
 }
-func (c *SuccessFactorsClient) doRequest(ctx context.Context, method, path string, reqOpts []uhttp.RequestOption, body interface{}, response interface{}) error {
-	// logger := ctxzap.Extract(ctx)
-	u, err := url.Parse(c.baseURL + path)
-	if err != nil {
-		return err
-	}
+func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *url.URL, reqOpts []uhttp.RequestOption, body interface{}, response interface{}) error {
 	if body != nil {
 		reqOpts = append(reqOpts, uhttp.WithJSONBody(body), uhttp.WithContentTypeJSONHeader())
 	}
@@ -94,7 +84,6 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method, path strin
 	if err != nil {
 		return err
 	}
-	//req.SetBasicAuth(c.Username, c.Password)
 	doOpts := []uhttp.DoOption{}
 	if response != nil {
 		doOpts = append(doOpts, uhttp.WithJSONResponse(response))
@@ -104,14 +93,14 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method, path strin
 	if resp != nil {
 		defer resp.Body.Close()
 	}
-	return nil
+	return err
 }
 
 func createAndSignSAMLAssertion(issuer, audience, recipient, subjectNameId, apiKey, privKey, certificate string) (string, error) {
 	// Generate timestamps
-	now := time.Now().UTC()
+	now := time.Now().UTC().Add(-5 * time.Second)
 	notBefore := now
-	notOnOrAfter := now.Add(24 * time.Hour)
+	notOnOrAfter := now.Add((24 * time.Hour) - (5 * time.Second))
 
 	// Create assertion
 	assertion := &saml.Assertion{
@@ -198,17 +187,25 @@ func createAndSignSAMLAssertion(issuer, audience, recipient, subjectNameId, apiK
 
 	// Base64 encode the signed assertion
 	encoded := base64.StdEncoding.EncodeToString(signedXML)
-	time.Sleep(time.Second)
 	return encoded, nil
 }
 
 func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	var response Bearer
-	//"/oauth/token?company_id="+c.compID+"&client_id="+c.clientID+"&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer&assertion="+c.SAMLAssertion
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithContentTypeFormHeader(),
 	}
-	err := c.doRequest(ctx, http.MethodPost, "/oauth/token?company_id="+c.compID+"&client_id="+c.clientID+"&grant_type=urn:ietf:params:oauth:grant-type:saml2-bearer&assertion="+c.SAMLAssertion, reqOpts, nil, &response)
+	u, err := url.Parse(c.baseURL + "/oauth/token")
+	if err != nil {
+		return "", fmt.Errorf("failed to get bearer: %w", err)
+	}
+	values := u.Query()
+	values.Add("company_id", c.compID)
+	values.Add("client_id", c.clientID)
+	values.Add("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer")
+	values.Add("assertion", c.SAMLAssertion)
+	u.RawQuery = values.Encode()
+	err = c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bearer: %w", err)
 	}
@@ -220,25 +217,40 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context) ([]Results, erro
 	var responses []Results
 	bearer, err := c.GetBearer(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed XXX: %w", err)
-	}
-	if bearer == "" {
-
+		return nil, fmt.Errorf("failed to get bearer: %w", err)
 	}
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithHeader("Authorization", "Bearer "+bearer),
 	}
-	err = c.doRequest(ctx, http.MethodGet, "/odata/v2/EmpJob?$format=json&$expand=userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav,employeeClassNav,emplStatusNav/picklistLabels,managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels&$select=userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/startDate,jobTitle,localJobTitle,companyNav/name_localized,businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,positionNav/externalName_defaultValue,employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,companyNav/countryNav/territoryName,employmentNav/endDate,userNav/custom07", reqOpts, nil, &response)
-	for response.Ds.Next != "" {
-		fmt.Println("here")
-		responses = slices.Concat(responses, response.Ds.Results)
-		path := strings.Replace(response.Ds.Next, c.baseURL, "", 1)
-		response = SuccessFactorsUserIdList{}
-		c.doRequest(ctx, http.MethodGet, path, reqOpts, nil, &response)
-
-	}
+	u, err := url.Parse(c.baseURL + "/odata/v2/EmpJob")
 	if err != nil {
-		return nil, fmt.Errorf("failed XXX: %w", err)
+		return nil, fmt.Errorf("failed to parse initial string: %w", err)
 	}
+	values := u.Query()
+	values.Add("$expand", "userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav")
+	values.Add("$expand", "employeeClassNav,emplStatusNav/picklistLabels,managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels")
+	values.Add("$format", "json")
+	values.Add("$select", "userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/startDate,jobTitle,localJobTitle,companyNav/name_localized")
+	values.Add("$select", "businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,positionNav/externalName_defaultValue")
+	values.Add("$select", "employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,companyNav/countryNav/territoryName")
+	values.Add("$select", "employmentNav/endDate,userNav/custom07")
+	u.RawQuery = values.Encode()
+	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+	for response.Ds.Next != "" {
+		responses = slices.Concat(responses, response.Ds.Results)
+		u, err = url.Parse(response.Ds.Next)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse next token: %w", err)
+		}
+		response = SuccessFactorsUserIdList{}
+		err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+		if err != nil {
+			return nil, fmt.Errorf("failed to make request: %w", err)
+		}
+	}
+
 	return responses, nil
 }
