@@ -227,8 +227,8 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context) ([]Results, erro
 	}
 	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
 	values := u.Query()
-	values.Add("$expand", "userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav")
-	values.Add("$expand", "employeeClassNav,emplStatusNav/picklistLabels,managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels")
+	values.Add("$expand", `userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav, employeeClassNav,emplStatusNav/picklistLabels,
+	managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels`)
 	values.Add("$format", "json")
 	values.Add("$select", `userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/endDate,employmentNav/startDate,jobTitle,
 	localJobTitle,companyNav/name_localized,businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,
