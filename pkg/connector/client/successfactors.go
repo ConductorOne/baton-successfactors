@@ -24,7 +24,7 @@ const (
 )
 
 type SuccessFactorsClient struct {
-	baseURL       string
+	baseURL       *url.URL
 	client        *uhttp.BaseHttpClient
 	compID        string
 	clientID      string
@@ -50,7 +50,12 @@ func New(
 	if baseURL == "" {
 		return nil, fmt.Errorf("base URL is required")
 	}
-	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", baseURL+"/oauth/token", subNID, samlAPIKey, privKey, pubKey)
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing instance-url")
+	}
+	samlbase := base.JoinPath(base.RawPath, "/oauth/token")
+	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", samlbase.String(), subNID, samlAPIKey, privKey, pubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +69,7 @@ func New(
 		return nil, err
 	}
 	return &SuccessFactorsClient{
-		baseURL:       baseURL,
+		baseURL:       base,
 		client:        client,
 		compID:        compID,
 		clientID:      clientID,
@@ -97,10 +102,11 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *
 }
 
 func createAndSignSAMLAssertion(issuer, audience, recipient, subjectNameId, apiKey, privKey, certificate string) (string, error) {
-	// Generate timestamps
+	// Generate timestamps.
+	// We subtract 5 from now to account for clock skew between the client and server
 	now := time.Now().UTC().Add(-5 * time.Second)
 	notBefore := now
-	notOnOrAfter := now.Add((24 * time.Hour) - (5 * time.Second))
+	notOnOrAfter := now.Add((24 * time.Hour))
 
 	// Create assertion
 	assertion := &saml.Assertion{
@@ -195,17 +201,14 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithContentTypeFormHeader(),
 	}
-	u, err := url.Parse(c.baseURL + "/oauth/token")
-	if err != nil {
-		return "", fmt.Errorf("failed to get bearer: %w", err)
-	}
+	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/oauth/token")
 	values := u.Query()
 	values.Add("company_id", c.compID)
 	values.Add("client_id", c.clientID)
 	values.Add("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer")
 	values.Add("assertion", c.SAMLAssertion)
 	u.RawQuery = values.Encode()
-	err = c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
+	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bearer: %w", err)
 	}
@@ -222,18 +225,15 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context) ([]Results, erro
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithHeader("Authorization", "Bearer "+bearer),
 	}
-	u, err := url.Parse(c.baseURL + "/odata/v2/EmpJob")
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse initial string: %w", err)
-	}
+	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
 	values := u.Query()
 	values.Add("$expand", "userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav")
 	values.Add("$expand", "employeeClassNav,emplStatusNav/picklistLabels,managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels")
 	values.Add("$format", "json")
-	values.Add("$select", "userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/startDate,jobTitle,localJobTitle,companyNav/name_localized")
-	values.Add("$select", "businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,positionNav/externalName_defaultValue")
-	values.Add("$select", "employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,companyNav/countryNav/territoryName")
-	values.Add("$select", "employmentNav/endDate,userNav/custom07")
+	values.Add("$select", `userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/endDate,employmentNav/startDate,jobTitle,
+	localJobTitle,companyNav/name_localized,businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,
+	positionNav/externalName_defaultValue,employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,
+	companyNav/countryNav/territoryName,employmentNav/endDate,userNav/custom07`)
 	u.RawQuery = values.Encode()
 	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
 	if err != nil {

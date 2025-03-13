@@ -62,4 +62,5 @@ jobs:
         run: ./baton-successfactors
       - name: Install baton
         run: ./scripts/get-baton.sh && mv baton /usr/local/bin
-
+      - name: Test baton resources
+        run: ./baton resources --output-format=json | jq '.resources[] | select(.resource.displayName == "rsmith") | .resource'

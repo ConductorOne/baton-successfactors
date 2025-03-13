@@ -10,7 +10,7 @@ endif
 
 .PHONY: build
 build:
-	go build -o ${OUTPUT_PATH} -mod=vendor ./cmd/baton-successfactors
+	go build -o ${OUTPUT_PATH} ./cmd/baton-successfactors
 
 .PHONY: update-deps
 update-deps:

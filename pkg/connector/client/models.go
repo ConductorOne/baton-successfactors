@@ -11,7 +11,7 @@ type metadata struct {
 }
 
 type picklistLabelsResults struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	Label    string   `json:"label"`
 }
 
@@ -20,12 +20,12 @@ type picklistLabels struct {
 }
 
 type emplStatusNav struct {
-	Metadata       metadata       `json:"metadata"`
+	Metadata       metadata       `json:"__metadata"`
 	PicklistLabels picklistLabels `json:"picklistLabels"`
 }
 
 type userNav struct {
-	Metadata  metadata `json:"metadata"`
+	Metadata  metadata `json:"__metadata"`
 	FirstName string   `json:"firstName"`
 	LastName  string   `json:"lastName"`
 	Custom07  string   `json:"custom07"`
@@ -35,63 +35,63 @@ type userNav struct {
 }
 
 type businessUnitNav struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	Name     string   `json:"name"`
 }
 
 type locationNav struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	Name     string   `json:"name"`
 }
 
 type employmentNav struct {
-	Metadata  metadata `json:"metadata"`
+	Metadata  metadata `json:"__metadata"`
 	EndDate   string   `json:"endDate"`
 	StartDate string   `json:"startDate"`
 }
 
 type divisionNav struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	Name     string   `json:"name"`
 }
 
 type positionNav struct {
-	Metadata                 metadata `json:"metadata"`
+	Metadata                 metadata `json:"__metadata"`
 	Code                     string   `json:"code"`
 	ExternalNameDefaultValue string   `json:"externalName_defaultValue"`
 }
 
 type costCenterNav struct {
-	Metadata         metadata `json:"metadata"`
+	Metadata         metadata `json:"__metadata"`
 	NameDefaultValue string   `json:"name_defaultValue"`
 }
 type employeeClassNav struct {
-	Metadata       metadata       `json:"metadata"`
+	Metadata       metadata       `json:"__metadata"`
 	PicklistLabels picklistLabels `json:"picklistLabels"`
 }
 
 type departmentNav struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	Name     string   `json:"name"`
 }
 
 type managerUserNav struct {
-	Metadata metadata `json:"metadata"`
+	Metadata metadata `json:"__metadata"`
 	UserId   string   `json:"userId"`
 	Email    string   `json:"email"`
 }
 type countryNav struct {
-	Metadata      metadata `json:"metadata"`
+	Metadata      metadata `json:"__metadata"`
 	TerritoryName string   `json:"territoryName"`
 }
 type companyNav struct {
-	Metadata      metadata   `json:"metadata"`
+	Metadata      metadata   `json:"__metadata"`
 	NameLocalized string     `json:"name_localized"`
 	CountryNav    countryNav `json:"countryNav"`
 }
 
 type Results struct {
-	Metadata         metadata         `json:"metadata"`
+	Metadata         metadata         `json:"__metadata"`
 	UserId           string           `json:"userId"`
 	JobTitle         string           `json:"jobTitle"`
 	LocalJobTitle    string           `json:"localJobTitle"`
