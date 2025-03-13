@@ -4,11 +4,14 @@ linters-settings:
 
   gocritic:
     # The list of supported checkers can be find in https://go-critic.github.io/overview.
+    enabled-checks:
+      - ruleguard
     settings:
       underef:
         # Whether to skip (*x).method() calls where x is a pointer receiver.
         skipRecvDeref: false
-
+      ruleguard:
+        rules: "${configDir}/tools/rules.go"
   govet:
     enable-all: true
     disable:

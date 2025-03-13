@@ -1,6 +1,6 @@
 module github.com/conductorone/baton-successfactors
 
-go 1.22.12
+go 1.23
 
 require (
 	github.com/beevik/etree v1.5.0
