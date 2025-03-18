@@ -63,4 +63,16 @@ jobs:
       - name: Install baton
         run: ./scripts/get-baton.sh && mv baton /usr/local/bin
       - name: Test baton resources
-        run: ./baton resources --output-format=json | jq '.resources[] | select(.resource.displayName == "rsmith") | .resource'
+        env:
+          BATON: baton
+          BATON_SUCCESSFACTORS: ./baton-successfactors
+          BATON_CID: ${{ secrets.SF_SAML_API_KEY }}
+          BATON_COMPANY_ID: ${{ secrets.SF_COMPANY_ID }}
+          BATON_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
+          BATON_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
+          BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
+          BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
+          BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
+          BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
+          BATON_PRINCIPAL: "rsmith"
+        run: ./test/verify-resources.sh
