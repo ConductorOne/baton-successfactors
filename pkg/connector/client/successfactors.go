@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"slices"
 	"time"
 
 	"github.com/beevik/etree"
@@ -216,42 +215,37 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	return response.AccessToken, nil
 }
 
-func (c *SuccessFactorsClient) GetUserData(ctx context.Context) ([]Results, error) {
+func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) ([]Results, string, error) {
 	var response SuccessFactorsUserIdList
-	var responses []Results
+	var u *url.URL
 	bearer, err := c.GetBearer(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get bearer: %w", err)
+		return nil, "", fmt.Errorf("failed to get bearer: %w", err)
 	}
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithHeader("Authorization", "Bearer "+bearer),
 	}
-	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
-	values := u.Query()
-	values.Add("$expand", `userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav, employeeClassNav,emplStatusNav/picklistLabels,
-	managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels`)
-	values.Add("$format", "json")
-	values.Add("$select", `userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/endDate,employmentNav/startDate,jobTitle,
-	localJobTitle,companyNav/name_localized,businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,
-	positionNav/externalName_defaultValue,employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,
-	companyNav/countryNav/territoryName,employmentNav/endDate,userNav/custom07`)
-	u.RawQuery = values.Encode()
+	// pToken will be a url with all of the queries
+	if pToken == "" {
+		u = c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
+		values := u.Query()
+		values.Add("$expand", `userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav, employeeClassNav,emplStatusNav/picklistLabels,
+		managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels`)
+		values.Add("$format", "json")
+		values.Add("$select", `userId,userNav/firstName,userNav/lastName,userNav/mi,userNav/username,userNav/email,employmentNav/endDate,employmentNav/startDate,jobTitle,
+		localJobTitle,companyNav/name_localized,businessUnitNav/name,divisionNav/name,departmentNav/name,locationNav/name,costCenterNav/name_defaultValue,positionNav/code,
+		positionNav/externalName_defaultValue,employeeClassNav/picklistLabels/label,emplStatusNav/picklistLabels/label,managerUserNav/userId,managerUserNav/email,
+		companyNav/countryNav/territoryName,employmentNav/endDate,userNav/custom07`)
+		u.RawQuery = values.Encode()
+	} else {
+		u, err = url.Parse(pToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to parse next token: %w", err)
+		}
+	}
 	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make request: %w", err)
+		return nil, "", fmt.Errorf("failed to make request: %w", err)
 	}
-	for response.Ds.Next != "" {
-		responses = slices.Concat(responses, response.Ds.Results)
-		u, err = url.Parse(response.Ds.Next)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse next token: %w", err)
-		}
-		response = SuccessFactorsUserIdList{}
-		err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
-		if err != nil {
-			return nil, fmt.Errorf("failed to make request: %w", err)
-		}
-	}
-
-	return responses, nil
+	return response.Ds.Results, response.Ds.Next, nil
 }
