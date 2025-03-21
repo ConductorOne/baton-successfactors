@@ -176,7 +176,7 @@ func createAndSignSAMLAssertion(issuer, audience, recipient, subjectNameId, apiK
 
 	// Sign the assertion
 	signedElement, err := signingContext.SignEnveloped(doc.Root())
-	if err != nil {
+	if err != nil || len(signedElement.ChildElements()) == 0 {
 		return "", fmt.Errorf("failed to sign assertion: %w", err)
 	}
 
