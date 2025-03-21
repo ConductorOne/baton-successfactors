@@ -54,7 +54,7 @@ func New(ctx context.Context,
 	subjectNameId string,
 	samlapikey string,
 ) (*Connector, error) {
-	SuccessFactorsClient, err := client.New(
+	successFactorsClient, err := client.New(
 		ctx,
 		instanceURL,
 		compId,
@@ -69,7 +69,7 @@ func New(ctx context.Context,
 		return nil, err
 	}
 	connector := Connector{
-		client:      SuccessFactorsClient,
+		client:      successFactorsClient,
 		ctx:         ctx,
 		instanceUrl: instanceURL,
 	}

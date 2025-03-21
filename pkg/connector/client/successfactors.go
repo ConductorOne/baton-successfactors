@@ -15,6 +15,7 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/uhttp"
 	"github.com/crewjam/saml"
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	dsig "github.com/russellhaering/goxmldsig"
 )
 
@@ -52,14 +53,14 @@ func New(
 	}
 	base, err := url.Parse(baseURL)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing instance-url")
+		return nil, fmt.Errorf("error parsing instance-url")
 	}
 	samlbase := base.JoinPath(base.RawPath, "/oauth/token")
 	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", samlbase.String(), subNID, samlAPIKey, privKey, pubKey)
 	if err != nil {
 		return nil, err
 	}
-	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, nil))
+	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, ctxzap.Extract(ctx)))
 	if err != nil {
 		return nil, err
 	}

@@ -25,7 +25,10 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	if user.EmploymentNav.EndDate == "" {
 		status = v2.UserTrait_Status_STATUS_ENABLED
 	} else {
-		r := regexp.MustCompile(`-?\d+`)
+		r, err := regexp.Compile(`-?\d+`)
+		if err != nil {
+			return nil, err
+		}
 		// Successfactors uses an outdated Date format so we have to parse it
 		// "older versions of .Net framework may serialize the c# datetime object into a strange string format like /Date(1530144000000)/"
 		i, err := strconv.ParseInt(r.FindString(user.EmploymentNav.EndDate), 10, 64)
