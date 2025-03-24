@@ -2,9 +2,18 @@
 
 # `baton-successfactors` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-successfactors.svg)](https://pkg.go.dev/github.com/conductorone/baton-successfactors) ![main ci](https://github.com/conductorone/baton-successfactors/actions/workflows/main.yaml/badge.svg)
 
-`baton-successfactors` is a connector for built using the [Baton SDK](https://github.com/conductorone/baton-sdk).
+`baton-successfactors` is a connector for SAP SuccessFactors built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the OData V2 protocol to sync data about users.
 
 Check out [Baton](https://github.com/conductorone/baton) to learn more the project in general.
+# Credentials
+Please reference the [SAP SuccessFactors API Reference Guide- OData V2](https://help.sap.com/doc/a7c08a422cc14e1eaaffee83610a981d/2411/en-US/SF_HCM_OData_API_DEV.pdf) to configure the API credentials on SuccessFactors. To access SuccessFactor, you must provide the following:
+1. SAML API key from when you register the connector as an OAuth application in SuccessFactors.
+2. Issuer URL from when you register the connector as an OAuth application in SuccessFactors.
+3. Client ID of the application from when you register the connector as an OAuth application in SuccessFactors.
+4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors
+5. User ID of the admin user that will be added to the SAML subject. Check out [Person/User IDs Used Within Employee Central - Employee Profile](https://userapps.support.sap.com/sap/support/knowledge/en/2493579) to learn more.
+6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFacotrs CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
+7. Instance URL for SuccessFactor API calls, you can find your API server following SAP documentation here [List of SAP SuccessFactors API server](https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM/d599f15995d348a1b45ba5603e2aba9b/af2b8d5437494b12be88fe374eba75b6.html)
 
 # Getting Started
 
@@ -63,6 +72,13 @@ Available Commands:
   help               Help about any command
 
 Flags:
+      --cid string               required: Client ID ($BATON_CID)
+      --client-id string         The client ID used to authenticate with ConductorOne ($BATON_CLIENT_ID)
+      --company-id string        required: Company ID ($BATON_COMPANY_ID)
+      --private-key string       required: Private Key ($BATON_PRIVATE_KEY)
+      --public-key string        required: Public Key ($BATON_PUBLIC_KEY)
+      --instance-url string      required: Your Success Factors domain, ex: https://successfactorsserver.com ($BATON_INSTANCE_URL)
+      --issuer-url string        required: Your SAML Issuer domain, ex: https://exampleissuer.com ($BATON_ISSUER_URL)
       --client-id string             The client ID used to authenticate with ConductorOne ($BATON_CLIENT_ID)
       --client-secret string         The client secret used to authenticate with ConductorOne ($BATON_CLIENT_SECRET)
   -f, --file string                  The path to the c1z file to sync with ($BATON_FILE) (default "sync.c1z")
