@@ -63,15 +63,24 @@ Available Commands:
   help               Help about any command
 
 Flags:
-      --client-id string             The client ID used to authenticate with ConductorOne ($BATON_CLIENT_ID)
-      --client-secret string         The client secret used to authenticate with ConductorOne ($BATON_CLIENT_SECRET)
-  -f, --file string                  The path to the c1z file to sync with ($BATON_FILE) (default "sync.c1z")
-  -h, --help                         help for baton-successfactors
-      --log-format string            The output format for logs: json, console ($BATON_LOG_FORMAT) (default "json")
-      --log-level string             The log level: debug, info, warn, error ($BATON_LOG_LEVEL) (default "info")
-  -p, --provisioning                 If this connector supports provisioning, this must be set in order for provisioning actions to be enabled ($BATON_PROVISIONING)
-      --ticketing                    This must be set to enable ticketing support ($BATON_TICKETING)
-  -v, --version                      version for baton-successfactors
+      --cid string               required: Client ID ($BATON_CID)
+      --client-id string         The client ID used to authenticate with ConductorOne ($BATON_CLIENT_ID)
+      --client-secret string     The client secret used to authenticate with ConductorOne ($BATON_CLIENT_SECRET)
+      --company-id string        required: Company ID ($BATON_COMPANY_ID)
+  -f, --file string              The path to the c1z file to sync with ($BATON_FILE) (default "sync.c1z")
+  -h, --help                     help for baton-successfactors
+      --instance-url string      required: Your Success Factors domain, ex: https://successfactorsserver.com ($BATON_INSTANCE_URL)
+      --issuer-url string        required: Your SAML Issuer domain, ex: https://exampleissuer.com ($BATON_ISSUER_URL)
+      --log-format string        The output format for logs: json, console ($BATON_LOG_FORMAT) (default "json")
+      --log-level string         The log level: debug, info, warn, error ($BATON_LOG_LEVEL) (default "info")
+      --private-key string       required: Private Key ($BATON_PRIVATE_KEY)
+  -p, --provisioning             This must be set in order for provisioning actions to be enabled ($BATON_PROVISIONING)
+      --public-key string        required: Public Key ($BATON_PUBLIC_KEY)
+      --saml-api-key string      required: SAML API Key ($BATON_SAML_API_KEY)
+      --skip-full-sync           This must be set to skip a full sync ($BATON_SKIP_FULL_SYNC)
+      --subject-name-id string   required: Subject Name ID ($BATON_SUBJECT_NAME_ID)
+      --ticketing                This must be set to enable ticketing support ($BATON_TICKETING)
+  -v, --version                  version for baton-successfactors
 
 Use "baton-successfactors [command] --help" for more information about a command.
 ```
