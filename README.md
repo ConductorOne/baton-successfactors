@@ -15,6 +15,21 @@ Please reference the [SAP SuccessFactors API Reference Guide- OData V2](https://
 6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFacotrs CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
 7. Instance URL for SuccessFactor API calls, you can find your API server following SAP documentation here [List of SAP SuccessFactors API server](https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM/d599f15995d348a1b45ba5603e2aba9b/af2b8d5437494b12be88fe374eba75b6.html)
 
+# Steps to Create Credentials in SuccessFactor
+
+## Create OAuth2 Client Applications
+Navigate to Admin tools > Manage OAuth2 Client Applications and select Register Client Application:
+![image](https://github.com/user-attachments/assets/595a269e-5c0c-45dc-b16b-85b2d955db63)
+Note down your **Company ID** and add:
+1. Application Name (e.g. Baton Connector)
+2. Application URL (Note down as **Isser URL**, e.g. https://www.conductorone.com/)
+3. **X.509 Certificate**, you can choose to generate a new certificate on the platform or locally. If you are uploading a self generated certificate, remove the lines -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----.
+
+## Retrieving API Key
+After creating the OAuth Client Application, select edit application and note down the API Key. Use this API Key as both the **Client ID** and the **SAML API key**.
+![image](https://github.com/user-attachments/assets/287c8fb4-4e25-44df-b464-57569adf1473)
+
+
 # Getting Started
 
 ## brew
