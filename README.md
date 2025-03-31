@@ -12,7 +12,7 @@ Please reference the [SAP SuccessFactors API Reference Guide- OData V2](https://
 3. Client ID of the application from when you register the connector as an OAuth application in SuccessFactors.
 4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors
 5. User ID of the admin user that will be added to the SAML subject. Check out [Person/User IDs Used Within Employee Central - Employee Profile](https://userapps.support.sap.com/sap/support/knowledge/en/2493579) to learn more.
-6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFacotrs CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
+6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFactors CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
 7. Instance URL for SuccessFactor API calls, you can find your API server following SAP documentation here [List of SAP SuccessFactors API server](https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM/d599f15995d348a1b45ba5603e2aba9b/af2b8d5437494b12be88fe374eba75b6.html)
 
 # Steps to Create Credentials in SuccessFactor
