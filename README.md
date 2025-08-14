@@ -62,6 +62,7 @@ baton resources
 
 `baton-successfactors` will pull down information about the following resources:
 - Users
+- Dynamic Groups
 
 # Contributing, Support and Issues
 
