@@ -132,12 +132,12 @@ type DynamicGroup struct {
 	TotalMemberCount      int      `json:"totalMemberCount"`
 	DgExcludePools        struct {
 		Deferred struct {
-			Uri string `json:"uri"`
+			URI string `json:"uri"`
 		} `json:"__deferred"`
 	} `json:"dgExcludePools"`
 	DgIncludePools struct {
 		Deferred struct {
-			Uri string `json:"uri"`
+			URI string `json:"uri"`
 		} `json:"__deferred"`
 	} `json:"dgIncludePools"`
 }

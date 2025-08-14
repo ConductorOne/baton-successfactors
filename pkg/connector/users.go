@@ -90,8 +90,8 @@ func userResource(user client.User) (*v2.Resource, error) {
 	return newUserResource, nil
 }
 
-// extractDate: SuccessFactors uses an outdated Date format so we have to parse it
-// "older versions of .Net framework may serialize the c# datetime object into a strange string format like /Date(1530144000000)/"
+// extractDate: SuccessFactors uses an outdated Date format so we have to parse it.
+// "older versions of .Net framework may serialize the c# datetime object into a strange string format like /Date(1530144000000)/".
 func extractDate(date string) time.Time {
 	r := regexp.MustCompile(`-?\d+`)
 
