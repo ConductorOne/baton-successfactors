@@ -1,5 +1,9 @@
 package client
 
+import (
+	"encoding/json"
+)
+
 type Bearer struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -90,7 +94,7 @@ type CompanyNav struct {
 	CountryNav    CountryNav `json:"countryNav"`
 }
 
-type Results struct {
+type User struct {
 	Metadata         Metadata         `json:"__metadata"`
 	UserId           string           `json:"userId"`
 	JobTitle         string           `json:"jobTitle"`
@@ -109,10 +113,58 @@ type Results struct {
 	CompanyNav       CompanyNav       `json:"companyNav"`
 }
 
-type D struct {
-	Results []Results `json:"results"`
-	Next    string    `json:"__next,omitempty"`
+type Response struct {
+	Ds struct {
+		Results json.RawMessage `json:"results"`
+		Next    string          `json:"__next,omitempty"`
+	} `json:"d"`
 }
-type SuccessFactorsUserIdList struct {
-	Ds D `json:"d"`
+
+type DynamicGroup struct {
+	Metadata              Metadata `json:"__metadata"`
+	GroupID               string   `json:"groupID"`
+	GroupName             string   `json:"groupName"`
+	GroupType             string   `json:"groupType"`
+	ActiveMembershipCount int      `json:"activeMembershipCount"`
+	CreatedBy             string   `json:"createdBy"`
+	LastModifiedDate      string   `json:"lastModifiedDate"`
+	UserType              string   `json:"userType,omitempty"`
+	TotalMemberCount      int      `json:"totalMemberCount"`
+	DgExcludePools        struct {
+		Deferred struct {
+			Uri string `json:"uri"`
+		} `json:"__deferred"`
+	} `json:"dgExcludePools"`
+	DgIncludePools struct {
+		Deferred struct {
+			Uri string `json:"uri"`
+		} `json:"__deferred"`
+	} `json:"dgIncludePools"`
+}
+
+type DGroupMemberResponse struct {
+	Ds []DGroupMember `json:"d"`
+}
+
+type DGroupMember struct {
+	FirstName  string `json:"firstName,omitempty"`
+	LastName   string `json:"lastName,omitempty"`
+	MiddleName string `json:"middleName,omitempty"`
+	PersonGUID string `json:"personGUID,omitempty"`
+	UserId     string `json:"userId,omitempty"`
+	UserName   string `json:"userName,omitempty"`
+}
+
+type ErrorResponse struct {
+	Schemas  []string `json:"schemas"`
+	ScimType string   `json:"scimType"`
+	Detail   string   `json:"detail"`
+	Status   int      `json:"status"`
+}
+
+func (er *ErrorResponse) Message() string {
+	if er.Detail == "" {
+		return "Error response empty"
+	}
+	return er.Detail
 }

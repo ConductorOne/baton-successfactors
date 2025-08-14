@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -82,14 +83,18 @@ func New(
 	}, nil
 }
 func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *url.URL, reqOpts []uhttp.RequestOption, body interface{}, response interface{}) error {
+	var errorResponse ErrorResponse
+
 	if body != nil {
 		reqOpts = append(reqOpts, uhttp.WithJSONBody(body), uhttp.WithContentTypeJSONHeader())
 	}
+
 	req, err := c.client.NewRequest(ctx, method, u, reqOpts...)
 	if err != nil {
 		return err
 	}
-	doOpts := []uhttp.DoOption{}
+
+	doOpts := []uhttp.DoOption{uhttp.WithErrorResponse(&errorResponse)}
 	if response != nil {
 		doOpts = append(doOpts, uhttp.WithJSONResponse(response))
 	}
@@ -98,6 +103,7 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *
 	if resp != nil {
 		defer resp.Body.Close()
 	}
+
 	return err
 }
 
@@ -201,6 +207,7 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithContentTypeFormHeader(),
 	}
+
 	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/oauth/token")
 	values := u.Query()
 	values.Add("company_id", c.compID)
@@ -208,6 +215,7 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	values.Add("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer")
 	values.Add("assertion", c.SAMLAssertion)
 	u.RawQuery = values.Encode()
+
 	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bearer: %w", err)
@@ -215,16 +223,19 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	return response.AccessToken, nil
 }
 
-func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) ([]Results, string, error) {
-	var response SuccessFactorsUserIdList
+func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) ([]User, string, error) {
+	var response Response
 	var u *url.URL
+
 	bearer, err := c.GetBearer(ctx)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get bearer: %w", err)
 	}
+
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithHeader("Authorization", "Bearer "+bearer),
 	}
+
 	// pToken will be a url with all of the queries
 	if pToken == "" {
 		u = c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
@@ -243,9 +254,86 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) (
 			return nil, "", fmt.Errorf("failed to parse next token: %w", err)
 		}
 	}
+
 	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to make request: %w", err)
 	}
-	return response.Ds.Results, response.Ds.Next, nil
+
+	var users []User
+	err = json.Unmarshal(response.Ds.Results, &users)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to unmarshal users response: %w", err)
+	}
+
+	return users, response.Ds.Next, nil
+}
+
+func (c *SuccessFactorsClient) GetDynamicGroups(ctx context.Context, pToken string) ([]DynamicGroup, string, error) {
+	var response Response
+	var u *url.URL
+
+	bearer, err := c.GetBearer(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get bearer: %w", err)
+	}
+
+	reqOpts := []uhttp.RequestOption{
+		uhttp.WithHeader("Authorization", "Bearer "+bearer),
+	}
+
+	if pToken == "" {
+		u = c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/DynamicGroup")
+		values := u.Query()
+		values.Add("$format", "json")
+		values.Add("$filter", "groupType eq 'permission'")
+		u.RawQuery = values.Encode()
+	} else {
+		// pToken is the url with all of original query params
+		u, err = url.Parse(pToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to parse next token: %w", err)
+		}
+	}
+
+	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to make request: %w", err)
+	}
+
+	var groups []DynamicGroup
+	err = json.Unmarshal(response.Ds.Results, &groups)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to unmarshal dynamic groups response: %w", err)
+	}
+
+	return groups, response.Ds.Next, nil
+}
+
+func (c *SuccessFactorsClient) GetDGroupMembers(ctx context.Context, groupID string) ([]DGroupMember, error) {
+	var response DGroupMemberResponse
+	var u *url.URL
+
+	bearer, err := c.GetBearer(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bearer: %w", err)
+	}
+
+	reqOpts := []uhttp.RequestOption{
+		uhttp.WithHeader("Authorization", "Bearer "+bearer),
+	}
+
+	u = c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/getUsersByDynamicGroup")
+	values := u.Query()
+	values.Add("groupId", fmt.Sprintf("%sL", groupID))
+	values.Add("activeOnly", "true")
+	values.Add("$format", "json")
+	u.RawQuery = values.Encode()
+
+	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+
+	return response.Ds, nil
 }

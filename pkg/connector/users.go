@@ -19,25 +19,9 @@ type userBuilder struct {
 	client       *client.SuccessFactorsClient
 }
 
-func userResource(user client.Results) (*v2.Resource, error) {
+func userResource(user client.User) (*v2.Resource, error) {
 	displayName := user.UserNav.Username
-	status := v2.UserTrait_Status_STATUS_DISABLED
-	if user.EmploymentNav.EndDate == "" {
-		status = v2.UserTrait_Status_STATUS_ENABLED
-	} else {
-		r := regexp.MustCompile(`-?\d+`)
-		// Successfactors uses an outdated Date format so we have to parse it
-		// "older versions of .Net framework may serialize the c# datetime object into a strange string format like /Date(1530144000000)/"
-		i, err := strconv.ParseInt(r.FindString(user.EmploymentNav.EndDate), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		end := time.UnixMilli(i)
-		// -1 means we are before the endDate.
-		if time.Now().Compare(end) == -1 {
-			status = v2.UserTrait_Status_STATUS_ENABLED
-		}
-	}
+
 	profile := make(map[string]interface{})
 	// If any of these are nil then the db will be populated with empty strings for them.
 	profile["userID"] = user.UserId
@@ -47,8 +31,6 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	profile["username"] = user.UserNav.Username
 	profile["email"] = user.UserNav.Email
 	profile["FedRamp Authorized-User(US Persons)"] = user.UserNav.Custom07
-	profile["Hire Date"] = user.EmploymentNav.StartDate
-	profile["Termination date"] = user.EmploymentNav.EndDate
 	profile["Job Title"] = user.JobTitle
 	profile["Local Job Title"] = user.LocalJobTitle
 	profile["Company name"] = user.CompanyNav.NameLocalized
@@ -62,6 +44,20 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	profile["Position jobTitle"] = user.PositionNav.ExternalNameDefaultValue
 	profile["Manager userid"] = user.ManagerUserNav.UserId
 	profile["Manager Email"] = user.ManagerUserNav.Email
+
+	status := v2.UserTrait_Status_STATUS_ENABLED
+	if user.EmploymentNav.EndDate != "" {
+		endDate := extractDate(user.EmploymentNav.EndDate)
+		if time.Now().Compare(endDate) == 1 {
+			status = v2.UserTrait_Status_STATUS_DISABLED
+		}
+
+		profile["Termination date"] = endDate.String()
+	}
+
+	if user.EmploymentNav.StartDate != "" {
+		profile["Hire Date"] = extractDate(user.EmploymentNav.StartDate).String()
+	}
 
 	// Results needs to be checked before indexing
 	if len(user.EmployeeClassNav.PicklistLabels.Results) == 0 {
@@ -94,7 +90,20 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	return newUserResource, nil
 }
 
-func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
+// extractDate: SuccessFactors uses an outdated Date format so we have to parse it
+// "older versions of .Net framework may serialize the c# datetime object into a strange string format like /Date(1530144000000)/"
+func extractDate(date string) time.Time {
+	r := regexp.MustCompile(`-?\d+`)
+
+	i, err := strconv.ParseInt(r.FindString(date), 10, 64)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return time.UnixMilli(i)
+}
+
+func (o *userBuilder) ResourceType(_ context.Context) *v2.ResourceType {
 	return resourceTypeUser
 }
 

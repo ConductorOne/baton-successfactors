@@ -15,4 +15,12 @@ var (
 		},
 		Annotations: annotations.New(&v2.SkipEntitlementsAndGrants{}),
 	}
+
+	groupResourceType = &v2.ResourceType{
+		Id:          "dynamic_group",
+		DisplayName: "Dynamic Group",
+		Traits: []v2.ResourceType_Trait{
+			v2.ResourceType_TRAIT_GROUP,
+		},
+	}
 )
