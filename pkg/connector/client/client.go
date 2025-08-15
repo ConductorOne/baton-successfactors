@@ -20,6 +20,8 @@ import (
 	dsig "github.com/russellhaering/goxmldsig"
 )
 
+// SuccessFactorsClient fields could be reduced when we modify how we generate the assertion and request the token.
+// TODO: Adjust the Client fields when we update how we get the bearer token.
 type SuccessFactorsClient struct {
 	compID        string
 	clientID      string
@@ -195,13 +197,16 @@ func (c *SuccessFactorsClient) doRequest(
 		return err
 	}
 
-	// TODO: Will change this later, it's only for tests (JAV)
 	var opts []uhttp.RequestOption
+	// At this point, the POST request is only made when requesting a new BearerToken.
+	// That's why this 'if' exists. TODO: Change when the token request gets updated
 	if method == "POST" {
+		// When requesting a new Token, this Content-Type is needed.
 		opts = append(opts,
 			uhttp.WithContentTypeFormHeader(),
 		)
 	} else {
+		// If not requesting a new Token and doing an actual new request:
 		opts = append(opts,
 			uhttp.WithBearerToken(c.bearerToken), uhttp.WithContentType("application/scim+json"),
 		)

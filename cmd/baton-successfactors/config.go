@@ -5,6 +5,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// I'm pretty sure that we could update this config fields to only require: 'URL', 'Admin username', 'client ID' and 'private key content'.
+// TODO: Update how we request the bearer token and the config fields.
+
 var (
 	CompIdField = field.StringField(
 		"company-id",

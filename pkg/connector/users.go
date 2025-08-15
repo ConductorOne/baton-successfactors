@@ -91,12 +91,10 @@ func parseIntoUserResource(user *client.User) (*v2.Resource, error) {
 			resource.WithUserLogin(primaryEmail),
 			resource.WithEmail(primaryEmail, true),
 		)
-	} else {
-		if len(user.Emails) != 0 {
-			userTraitOptions = append(userTraitOptions,
-				resource.WithEmail(primaryEmail, false),
-			)
-		}
+	} else if len(user.Emails) != 0 {
+		userTraitOptions = append(userTraitOptions,
+			resource.WithEmail(primaryEmail, false),
+		)
 	}
 
 	newUserResource, err := resource.NewUserResource(
