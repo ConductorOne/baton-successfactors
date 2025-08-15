@@ -6,13 +6,20 @@ import (
 )
 
 var (
-	// The user resource type is for all user objects from the database.
-	resourceTypeUser = &v2.ResourceType{
+	userResourceType = &v2.ResourceType{
 		Id:          "user",
 		DisplayName: "User",
 		Traits: []v2.ResourceType_Trait{
 			v2.ResourceType_TRAIT_USER,
 		},
 		Annotations: annotations.New(&v2.SkipEntitlementsAndGrants{}),
+	}
+
+	groupResourceType = &v2.ResourceType{
+		Id:          "group",
+		DisplayName: "Group",
+		Traits: []v2.ResourceType_Trait{
+			v2.ResourceType_TRAIT_GROUP,
+		},
 	}
 )

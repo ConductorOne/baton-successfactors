@@ -11,35 +11,35 @@ import (
 )
 
 type Connector struct {
-	ctx         context.Context
-	instanceUrl string
 	client      *client.SuccessFactorsClient
+	instanceURL string
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
-func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
+func (d *Connector) ResourceSyncers(_ context.Context) []connectorbuilder.ResourceSyncer {
 	return []connectorbuilder.ResourceSyncer{
 		newUserBuilder(d.client),
+		newGroupBuilder(d.client),
 	}
 }
 
 // Asset takes an input AssetRef and attempts to fetch it using the connector's authenticated http client
 // It streams a response, always starting with a metadata object, following by chunked payloads for the asset.
-func (d *Connector) Asset(ctx context.Context, asset *v2.AssetRef) (string, io.ReadCloser, error) {
+func (d *Connector) Asset(_ context.Context, _ *v2.AssetRef) (string, io.ReadCloser, error) {
 	return "", nil, nil
 }
 
 // Metadata returns metadata about the connector.
-func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
+func (d *Connector) Metadata(_ context.Context) (*v2.ConnectorMetadata, error) {
 	return &v2.ConnectorMetadata{
-		DisplayName: "My Baton Connector",
-		Description: "The template implementation of a baton connector",
+		DisplayName: "SAP SuccessFactors",
+		Description: "Syncs Users and Groups",
 	}, nil
 }
 
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
-func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
+func (d *Connector) Validate(_ context.Context) (annotations.Annotations, error) {
 	return nil, nil
 }
 
@@ -70,8 +70,7 @@ func New(ctx context.Context,
 	}
 	connector := Connector{
 		client:      successFactorsClient,
-		ctx:         ctx,
-		instanceUrl: instanceURL,
+		instanceURL: instanceURL,
 	}
 	return &connector, nil
 }
