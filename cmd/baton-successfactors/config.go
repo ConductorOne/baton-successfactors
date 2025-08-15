@@ -6,9 +6,6 @@ import (
 )
 
 var (
-	// ConfigurationFields defines the external configuration required for the
-	// connector to run. Note: these fields can be marked as optional or
-	// required.
 	CompIdField = field.StringField(
 		"company-id",
 		field.WithDescription("Company ID"),
@@ -71,6 +68,6 @@ var (
 // error if it isn't valid. Implementing this function is optional, it only
 // needs to perform extra validations that cannot be encoded with configuration
 // parameters.
-func ValidateConfig(v *viper.Viper) error {
+func ValidateConfig(_ *viper.Viper) error {
 	return nil
 }

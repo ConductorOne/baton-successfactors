@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	// The user resource type is for all user objects from the database.
-	resourceTypeUser = &v2.ResourceType{
+	userResourceType = &v2.ResourceType{
 		Id:          "user",
 		DisplayName: "User",
 		Traits: []v2.ResourceType_Trait{
@@ -17,8 +16,8 @@ var (
 	}
 
 	groupResourceType = &v2.ResourceType{
-		Id:          "dynamic_group",
-		DisplayName: "Dynamic Group",
+		Id:          "group",
+		DisplayName: "Group",
 		Traits: []v2.ResourceType_Trait{
 			v2.ResourceType_TRAIT_GROUP,
 		},

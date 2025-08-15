@@ -24,37 +24,38 @@ func (b *groupBuilder) ResourceType(_ context.Context) *v2.ResourceType {
 }
 
 func (b *groupBuilder) List(ctx context.Context, _ *v2.ResourceId, pToken *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
-	var (
-		groupResources []*v2.Resource
-		nextPageLink   string
-	)
+	var groupResources []*v2.Resource
 	outAnnotations := annotations.Annotations{}
 
-	dynamicGroups, nextPageLink, err := b.client.GetDynamicGroups(ctx, pToken.Token)
+	groups, nextPageIndex, rateLimitData, err := b.client.GetGroups(ctx, pToken.Token)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("failed to list dynamicGroups: %w", err)
+		if rateLimitData != nil {
+			outAnnotations.WithRateLimiting(rateLimitData)
+		}
+
+		return nil, "", outAnnotations, fmt.Errorf("failed to list groups: %w", err)
 	}
 
-	for _, dGroup := range dynamicGroups {
-		groupResource, err := parseIntoGroupResource(dGroup)
+	for _, group := range groups {
+		groupResource, err := parseIntoGroupResource(group)
 		if err != nil {
-			return nil, "", nil, err
+			return nil, "", outAnnotations, err
 		}
 
 		groupResources = append(groupResources, groupResource)
 	}
 
-	return groupResources, nextPageLink, outAnnotations, nil
+	return groupResources, nextPageIndex, outAnnotations, nil
 }
 
 func (b *groupBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
 	var outAnnotations annotations.Annotations
 
 	displayName := fmt.Sprintf("Member of %s", resource.DisplayName)
-	description := fmt.Sprintf("Member of the %s dynamic group.", resource.DisplayName)
+	description := fmt.Sprintf("Member of the %s group.", resource.DisplayName)
 
 	assigmentOptions := []entitlement.EntitlementOption{
-		entitlement.WithGrantableTo(resourceTypeUser),
+		entitlement.WithGrantableTo(userResourceType),
 		entitlement.WithDisplayName(displayName),
 		entitlement.WithDescription(description),
 	}
@@ -68,16 +69,19 @@ func (b *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pag
 
 	groupID := resource.Id.Resource
 
-	groupMembers, err := b.client.GetDGroupMembers(ctx, groupID)
+	group, rateLimitData, err := b.client.GetGroup(ctx, groupID)
 	if err != nil {
+		if rateLimitData != nil {
+			outAnnotations.WithRateLimiting(rateLimitData)
+		}
 		return nil, "", outAnnotations, err
 	}
 
-	for _, groupMember := range groupMembers {
+	for _, groupMember := range group.Members {
 		userResource := &v2.Resource{
 			Id: &v2.ResourceId{
-				ResourceType: resourceTypeUser.Id,
-				Resource:     groupMember.UserId,
+				ResourceType: userResourceType.Id,
+				Resource:     groupMember.Value,
 			},
 		}
 
@@ -87,14 +91,15 @@ func (b *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pag
 	return grantResources, "", outAnnotations, nil
 }
 
-func parseIntoGroupResource(dynamicGroup client.DynamicGroup) (*v2.Resource, error) {
+func parseIntoGroupResource(group *client.Group) (*v2.Resource, error) {
 	profile := map[string]interface{}{
-		"name":                    dynamicGroup.GroupName,
-		"active_membership_count": dynamicGroup.ActiveMembershipCount,
+		"name": group.DisplayName,
 	}
 
-	if dynamicGroup.LastModifiedDate != "" {
-		profile["last_modified_date"] = extractDate(dynamicGroup.LastModifiedDate).String()
+	if group.Meta != nil {
+		profile["modified_on"] = group.Meta.LastModified.String()
+		profile["created_on"] = group.Meta.Created.String()
+		profile["membership_count"] = group.Meta.MembersCnt
 	}
 
 	groupTraits := []rs.GroupTraitOption{
@@ -102,9 +107,9 @@ func parseIntoGroupResource(dynamicGroup client.DynamicGroup) (*v2.Resource, err
 	}
 
 	ret, err := rs.NewGroupResource(
-		dynamicGroup.GroupName,
+		group.DisplayName,
 		groupResourceType,
-		dynamicGroup.GroupID,
+		group.Id,
 		groupTraits,
 	)
 	if err != nil {

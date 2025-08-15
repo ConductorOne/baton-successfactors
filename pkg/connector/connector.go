@@ -11,9 +11,8 @@ import (
 )
 
 type Connector struct {
-	ctx         context.Context
-	instanceUrl string
 	client      *client.SuccessFactorsClient
+	instanceURL string
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
@@ -26,15 +25,15 @@ func (d *Connector) ResourceSyncers(_ context.Context) []connectorbuilder.Resour
 
 // Asset takes an input AssetRef and attempts to fetch it using the connector's authenticated http client
 // It streams a response, always starting with a metadata object, following by chunked payloads for the asset.
-func (d *Connector) Asset(ctx context.Context, asset *v2.AssetRef) (string, io.ReadCloser, error) {
+func (d *Connector) Asset(_ context.Context, _ *v2.AssetRef) (string, io.ReadCloser, error) {
 	return "", nil, nil
 }
 
 // Metadata returns metadata about the connector.
 func (d *Connector) Metadata(_ context.Context) (*v2.ConnectorMetadata, error) {
 	return &v2.ConnectorMetadata{
-		DisplayName: "SAP SuccessFactors connector",
-		Description: "Syncs Users and Dynamic Groups",
+		DisplayName: "SAP SuccessFactors",
+		Description: "Syncs Users and Groups",
 	}, nil
 }
 
@@ -71,8 +70,7 @@ func New(ctx context.Context,
 	}
 	connector := Connector{
 		client:      successFactorsClient,
-		ctx:         ctx,
-		instanceUrl: instanceURL,
+		instanceURL: instanceURL,
 	}
 	return &connector, nil
 }
