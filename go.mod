@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/beevik/etree v1.5.0
-	github.com/conductorone/baton-sdk v0.3.34
+	github.com/conductorone/baton-sdk v0.3.35
 	github.com/crewjam/saml v0.4.14
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/google/uuid v1.6.0
