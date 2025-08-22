@@ -51,8 +51,8 @@ var (
 	)
 	SyncGroupsField = field.BoolField(
 		"sync-groups",
-		field.WithDescription("Enable syncing of groups (default: true)"),
-		field.WithDefaultValue(true),
+		field.WithDescription("Enable syncing of groups (default: false)"),
+		field.WithDefaultValue(false),
 	)
 	ConfigurationFields = []field.SchemaField{
 		CompIdField,
