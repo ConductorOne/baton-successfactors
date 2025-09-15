@@ -1,12 +1,10 @@
 module github.com/conductorone/baton-successfactors
 
-go 1.23.4
-
-toolchain go1.24.6
+go 1.25
 
 require (
 	github.com/beevik/etree v1.5.0
-	github.com/conductorone/baton-sdk v0.3.34
+	github.com/conductorone/baton-sdk v0.3.54
 	github.com/crewjam/saml v0.4.14
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/google/uuid v1.6.0
@@ -65,7 +63,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jellydator/ttlcache/v3 v3.3.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240909124753-873cd0166683 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
