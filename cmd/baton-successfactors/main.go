@@ -9,9 +9,9 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 	"github.com/conductorone/baton-sdk/pkg/field"
 	"github.com/conductorone/baton-sdk/pkg/types"
+	cfg "github.com/conductorone/baton-successfactors/pkg/config"
 	"github.com/conductorone/baton-successfactors/pkg/connector"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -24,9 +24,7 @@ func main() {
 		ctx,
 		"baton-successfactors",
 		getConnector,
-		field.Configuration{
-			Fields: ConfigurationFields,
-		},
+		cfg.Config,
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -42,31 +40,73 @@ func main() {
 	}
 }
 
-func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, error) {
+func getConnector(ctx context.Context, config *cfg.Successfactors) (types.ConnectorServer, error) {
 	l := ctxzap.Extract(ctx)
-	if err := ValidateConfig(v); err != nil {
+	if err := field.Validate(cfg.Config, config); err != nil {
 		return nil, err
+	}
+
+	companyID := config.CompanyId
+	if companyID == "" {
+		return nil, fmt.Errorf("company-id is required")
+	}
+
+	clientID := config.Cid
+	if clientID == "" {
+		return nil, fmt.Errorf("cid is required")
+	}
+
+	certificate := config.PublicKey
+	if certificate == "" {
+		return nil, fmt.Errorf("public-key is required")
+	}
+
+	privateKey := config.PrivateKey
+	if privateKey == "" {
+		return nil, fmt.Errorf("private-key is required")
+	}
+
+	instanceURL := config.InstanceUrl
+	if instanceURL == "" {
+		return nil, fmt.Errorf("instance-url is required")
+	}
+
+	issuerURL := config.IssuerUrl
+	if issuerURL == "" {
+		return nil, fmt.Errorf("issuer-url is required")
+	}
+
+	username := config.SubjectNameId
+	if username == "" {
+		return nil, fmt.Errorf("subject-name-id is required")
+	}
+
+	samlAPIKey := config.SamlApiKey
+	if samlAPIKey == "" {
+		return nil, fmt.Errorf("saml-api-key is required")
 	}
 
 	cb, err := connector.New(
 		ctx,
-		v.GetString(CompIdField.FieldName),
-		v.GetString(ClientIdField.FieldName),
-		v.GetString(PubKeyField.FieldName),
-		v.GetString(PrivKeyField.FieldName),
-		v.GetString(InstanceUrlField.FieldName),
-		v.GetString(IssuerUrlField.FieldName),
-		v.GetString(SubjectNameIdField.FieldName),
-		v.GetString(SAMLAPIKeyField.FieldName),
+		companyID,
+		clientID,
+		certificate,
+		privateKey,
+		instanceURL,
+		issuerURL,
+		username,
+		samlAPIKey,
 	)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
 	}
-	connector, err := connectorbuilder.NewConnector(ctx, cb)
+
+	conn, err := connectorbuilder.NewConnector(ctx, cb)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
 	}
-	return connector, nil
+
+	return conn, nil
 }
