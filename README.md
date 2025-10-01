@@ -2,7 +2,7 @@
 
 # `baton-successfactors` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-successfactors.svg)](https://pkg.go.dev/github.com/conductorone/baton-successfactors) ![main ci](https://github.com/conductorone/baton-successfactors/actions/workflows/main.yaml/badge.svg)
 
-`baton-successfactors` is a connector for built using the [Baton SDK](https://github.com/conductorone/baton-sdk).
+`baton-successfactors` is a connector for SAP SuccessFactors built using the [Baton SDK](https://github.com/conductorone/baton-sdk).
 
 Check out [Baton](https://github.com/conductorone/baton) to learn more the project in general.
 

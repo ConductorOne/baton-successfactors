@@ -6,49 +6,54 @@ import (
 )
 
 var (
-	// ConfigurationFields defines the external configuration required for the
-	// connector to run. Note: these fields can be marked as optional or
-	// required.
 	CompIdField = field.StringField(
 		"company-id",
 		field.WithDescription("Company ID"),
 		field.WithRequired(true),
 	)
+
 	ClientIdField = field.StringField(
 		"cid",
 		field.WithDescription("Client ID"),
 		field.WithRequired(true),
 	)
+
 	PubKeyField = field.StringField(
 		"public-key",
 		field.WithDescription("Public Key"),
 		field.WithRequired(true),
 	)
+
 	SAMLAPIKeyField = field.StringField(
 		"saml-api-key",
 		field.WithDescription("SAML API Key"),
 		field.WithRequired(true),
 	)
+
 	PrivKeyField = field.StringField(
 		"private-key",
 		field.WithDescription("Private Key"),
 		field.WithRequired(true),
 	)
+
 	InstanceUrlField = field.StringField(
 		"instance-url",
 		field.WithDescription("Your Success Factors domain, ex: https://successfactorsserver.com"),
 		field.WithRequired(true),
 	)
+
 	IssuerUrlField = field.StringField(
 		"issuer-url",
 		field.WithDescription("Your SAML Issuer domain, ex: https://exampleissuer.com"),
 		field.WithRequired(true),
 	)
+
 	SubjectNameIdField = field.StringField(
 		"subject-name-id",
 		field.WithDescription("Subject Name ID"),
 		field.WithRequired(true),
 	)
+
 	ConfigurationFields = []field.SchemaField{
 		CompIdField,
 		ClientIdField,
@@ -71,6 +76,6 @@ var (
 // error if it isn't valid. Implementing this function is optional, it only
 // needs to perform extra validations that cannot be encoded with configuration
 // parameters.
-func ValidateConfig(v *viper.Viper) error {
+func ValidateConfig(_ *viper.Viper) error {
 	return nil
 }
