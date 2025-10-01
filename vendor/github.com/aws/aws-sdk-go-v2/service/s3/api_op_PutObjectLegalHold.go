@@ -14,7 +14,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// This operation is not supported for directory buckets.
+// This operation is not supported by directory buckets.
 //
 // Applies a legal hold configuration to the specified object. For more
 // information, see [Locking Objects].
@@ -107,7 +107,6 @@ type PutObjectLegalHoldInput struct {
 }
 
 func (in *PutObjectLegalHoldInput) bindEndpointParams(p *EndpointParameters) {
-
 	p.Bucket = in.Bucket
 
 }
@@ -169,9 +168,6 @@ func (c *Client) addOperationPutObjectLegalHoldMiddlewares(stack *middleware.Sta
 	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
 	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
@@ -185,18 +181,6 @@ func (c *Client) addOperationPutObjectLegalHoldMiddlewares(stack *middleware.Sta
 		return err
 	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
-		return err
-	}
-	if err = addIsExpressUserAgent(stack); err != nil {
-		return err
-	}
-	if err = addRequestChecksumMetricsTracking(stack, options); err != nil {
 		return err
 	}
 	if err = addOpPutObjectLegalHoldValidationMiddleware(stack); err != nil {
@@ -238,18 +222,6 @@ func (c *Client) addOperationPutObjectLegalHoldMiddlewares(stack *middleware.Sta
 	if err = s3cust.AddExpressDefaultChecksumMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -279,10 +251,9 @@ func getPutObjectLegalHoldRequestAlgorithmMember(input interface{}) (string, boo
 }
 
 func addPutObjectLegalHoldInputChecksumMiddlewares(stack *middleware.Stack, options Options) error {
-	return addInputChecksumMiddleware(stack, internalChecksum.InputMiddlewareOptions{
+	return internalChecksum.AddInputMiddleware(stack, internalChecksum.InputMiddlewareOptions{
 		GetAlgorithm:                     getPutObjectLegalHoldRequestAlgorithmMember,
 		RequireChecksum:                  true,
-		RequestChecksumCalculation:       options.RequestChecksumCalculation,
 		EnableTrailingChecksum:           false,
 		EnableComputeSHA256PayloadHash:   true,
 		EnableDecodedContentLengthHeader: true,

@@ -1,91 +1,118 @@
 package client
 
-import (
-	"encoding/json"
-	"time"
-)
-
-type BearerToken struct {
+type Bearer struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in"`
 }
-
-type ErrorResponse struct {
-	Schemas  []string `json:"schemas,omitempty"`
-	ScimType string   `json:"scimType,omitempty"`
-	Detail   string   `json:"detail,omitempty"`
-	Status   int      `json:"status,omitempty"`
+type Metadata struct {
+	URIString string `json:"uri"`
+	Type      string `json:"type"`
 }
 
-func (er *ErrorResponse) Message() string {
-	if er.Detail == "" {
-		return "Error response empty"
-	}
-	return er.Detail
+type PicklistLabelsResults struct {
+	Metadata Metadata `json:"__metadata"`
+	Label    string   `json:"label"`
 }
 
-type Response struct {
-	Schemas      []string        `json:"schemas"`
-	TotalResults int             `json:"totalResults"`
-	ItemsPerPage int             `json:"itemsPerPage"`
-	StartIndex   int             `json:"startIndex"`
-	Resources    json.RawMessage `json:"resources"`
+type PicklistLabels struct {
+	Results []PicklistLabelsResults `json:"results"`
 }
 
-type User struct {
-	Schemas           []string      `json:"schemas"`
-	Meta              *UserMetadata `json:"meta,omitempty"`
-	Id                string        `json:"id"`
-	UserName          string        `json:"userName"`
-	Name              Name          `json:"name"`
-	Locale            string        `json:"locale"`
-	UserType          string        `json:"userType"`
-	Active            bool          `json:"active"`
-	DisplayName       string        `json:"displayName"`
-	PreferredLanguage string        `json:"preferredLanguage"`
-	Emails            []struct {
-		Type    string `json:"type"`
-		Value   string `json:"value"`
-		Primary bool   `json:"primary"`
-	} `json:"emails"`
-	Title string `json:"title"`
+type EmplStatusNav struct {
+	Metadata       Metadata       `json:"__metadata"`
+	PicklistLabels PicklistLabels `json:"picklistLabels"`
 }
 
-type Name struct {
-	Formatted       string `json:"formatted"`
-	FamilyName      string `json:"familyName"`
-	GivenName       string `json:"givenName"`
-	HonorificPrefix string `json:"honorificPrefix"`
+type UserNav struct {
+	Metadata  Metadata `json:"__metadata"`
+	FirstName string   `json:"firstName"`
+	LastName  string   `json:"lastName"`
+	Custom07  string   `json:"custom07"`
+	Mi        string   `json:"mi"`
+	Email     string   `json:"email"`
+	Username  string   `json:"username"`
 }
 
-type UserMetadata struct {
-	ResourceType string    `json:"resourceType"`
-	Created      time.Time `json:"created"`
-	LastModified time.Time `json:"lastModified"`
-	Location     string    `json:"location"`
-	Version      string    `json:"version"`
+type BusinessUnitNav struct {
+	Metadata Metadata `json:"__metadata"`
+	Name     string   `json:"name"`
 }
 
-type Group struct {
-	Schemas     []string       `json:"schemas"`
-	Id          string         `json:"id"`
-	DisplayName string         `json:"displayName"`
-	Members     []*GroupMember `json:"members"`
-	Meta        *GroupMetadata `json:"meta,omitempty"`
+type LocationNav struct {
+	Metadata Metadata `json:"__metadata"`
+	Name     string   `json:"name"`
 }
 
-type GroupMember struct {
-	Value string `json:"value"`
-	Type  string `json:"type"`
-	Ref   string `json:"$ref"`
+type EmploymentNav struct {
+	Metadata  Metadata `json:"__metadata"`
+	EndDate   string   `json:"endDate"`
+	StartDate string   `json:"startDate"`
 }
 
-type GroupMetadata struct {
-	ResourceType string    `json:"resourceType"`
-	Created      time.Time `json:"created"`
-	LastModified time.Time `json:"lastModified"`
-	Location     string    `json:"location"`
-	Version      string    `json:"version"`
-	MembersCnt   int       `json:"members.cnt"`
+type DivisionNav struct {
+	Metadata Metadata `json:"__metadata"`
+	Name     string   `json:"name"`
+}
+
+type PositionNav struct {
+	Metadata                 Metadata `json:"__metadata"`
+	Code                     string   `json:"code"`
+	ExternalNameDefaultValue string   `json:"externalName_defaultValue"`
+}
+
+type CostCenterNav struct {
+	Metadata         Metadata `json:"__metadata"`
+	NameDefaultValue string   `json:"name_defaultValue"`
+}
+type EmployeeClassNav struct {
+	Metadata       Metadata       `json:"__metadata"`
+	PicklistLabels PicklistLabels `json:"picklistLabels"`
+}
+
+type DepartmentNav struct {
+	Metadata Metadata `json:"__metadata"`
+	Name     string   `json:"name"`
+}
+
+type ManagerUserNav struct {
+	Metadata Metadata `json:"__metadata"`
+	UserId   string   `json:"userId"`
+	Email    string   `json:"email"`
+}
+type CountryNav struct {
+	Metadata      Metadata `json:"__metadata"`
+	TerritoryName string   `json:"territoryName"`
+}
+type CompanyNav struct {
+	Metadata      Metadata   `json:"__metadata"`
+	NameLocalized string     `json:"name_localized"`
+	CountryNav    CountryNav `json:"countryNav"`
+}
+
+type Results struct {
+	Metadata         Metadata         `json:"__metadata"`
+	UserId           string           `json:"userId"`
+	JobTitle         string           `json:"jobTitle"`
+	LocalJobTitle    string           `json:"localJobTitle"`
+	EmplStatusNav    EmplStatusNav    `json:"emplStatusNav"`
+	UserNav          UserNav          `json:"userNav"`
+	BusinessUnitNav  BusinessUnitNav  `json:"businessUnitNav"`
+	LocationNav      LocationNav      `json:"locationNav"`
+	EmploymentNav    EmploymentNav    `json:"employmentNav"`
+	DivisionNav      DivisionNav      `json:"divisionNav"`
+	PositionNav      PositionNav      `json:"positionNav"`
+	CostCenterNav    CostCenterNav    `json:"costCenterNav"`
+	EmployeeClassNav EmployeeClassNav `json:"employeeClassNav"`
+	DepartmentNav    DepartmentNav    `json:"departmentNav"`
+	ManagerUserNav   ManagerUserNav   `json:"managerUserNav"`
+	CompanyNav       CompanyNav       `json:"companyNav"`
+}
+
+type D struct {
+	Results []Results `json:"results"`
+	Next    string    `json:"__next,omitempty"`
+}
+type SuccessFactorsUserIdList struct {
+	Ds D `json:"d"`
 }
