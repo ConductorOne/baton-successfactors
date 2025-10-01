@@ -49,11 +49,6 @@ var (
 		field.WithDescription("Subject Name ID"),
 		field.WithRequired(true),
 	)
-	SyncGroupsField = field.BoolField(
-		"sync-groups",
-		field.WithDescription("Enable syncing of groups (default: false)"),
-		field.WithDefaultValue(false),
-	)
 	ConfigurationFields = []field.SchemaField{
 		CompIdField,
 		ClientIdField,
@@ -63,7 +58,6 @@ var (
 		InstanceUrlField,
 		IssuerUrlField,
 		SubjectNameIdField,
-		SyncGroupsField,
 	}
 
 	// FieldRelationships defines relationships between the fields listed in

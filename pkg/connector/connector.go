@@ -13,20 +13,14 @@ import (
 type Connector struct {
 	client      *client.SuccessFactorsClient
 	instanceURL string
-	syncGroups  bool
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
 func (d *Connector) ResourceSyncers(_ context.Context) []connectorbuilder.ResourceSyncer {
-	syncers := []connectorbuilder.ResourceSyncer{
+	return []connectorbuilder.ResourceSyncer{
 		newUserBuilder(d.client),
+		newGroupBuilder(d.client),
 	}
-
-	if d.syncGroups {
-		syncers = append(syncers, newGroupBuilder(d.client))
-	}
-
-	return syncers
 }
 
 // Asset takes an input AssetRef and attempts to fetch it using the connector's authenticated http client
@@ -59,7 +53,6 @@ func New(ctx context.Context,
 	issuerURL string,
 	subjectNameId string,
 	samlapikey string,
-	syncGroups bool,
 ) (*Connector, error) {
 	successFactorsClient, err := client.New(
 		ctx,
@@ -78,7 +71,6 @@ func New(ctx context.Context,
 	connector := Connector{
 		client:      successFactorsClient,
 		instanceURL: instanceURL,
-		syncGroups:  syncGroups,
 	}
 	return &connector, nil
 }
