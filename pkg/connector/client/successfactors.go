@@ -19,8 +19,11 @@ import (
 )
 
 const (
-	APIPath     = ""
-	AuditorRole = "AUDITOR"
+	empJobEP = "/odata/v2/EmpJob" // empJobEP is used to get information about the users.
+
+	tokenPath      = "/oauth/token"                                  //nolint:gosec // tokenPath does not contain sensitive credentials. It's an endpoint.
+	tokenGrantType = "urn:ietf:params:oauth:grant-type:saml2-bearer" //nolint:gosec // tokenGrantType does not contain sensitive credentials.
+	audienceURL    = "www.successfactors.com"
 )
 
 type SuccessFactorsClient struct {
@@ -54,8 +57,8 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("error parsing instance-url")
 	}
-	samlbase := base.JoinPath(base.RawPath, "/oauth/token")
-	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, "www.successfactors.com", samlbase.String(), subNID, samlAPIKey, privKey, pubKey)
+	samlbase := base.JoinPath(base.RawPath, tokenPath)
+	signedAssertion, err := createAndSignSAMLAssertion(issuerURL, audienceURL, samlbase.String(), subNID, samlAPIKey, privKey, pubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +84,7 @@ func New(
 		SAMLAssertion: signedAssertion,
 	}, nil
 }
+
 func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *url.URL, reqOpts []uhttp.RequestOption, body interface{}, response interface{}) error {
 	if body != nil {
 		reqOpts = append(reqOpts, uhttp.WithJSONBody(body), uhttp.WithContentTypeJSONHeader())
@@ -201,11 +205,11 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	reqOpts := []uhttp.RequestOption{
 		uhttp.WithContentTypeFormHeader(),
 	}
-	u := c.baseURL.JoinPath(c.baseURL.RawPath, "/oauth/token")
+	u := c.baseURL.JoinPath(c.baseURL.RawPath, tokenPath)
 	values := u.Query()
 	values.Add("company_id", c.compID)
 	values.Add("client_id", c.clientID)
-	values.Add("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer")
+	values.Add("grant_type", tokenGrantType)
 	values.Add("assertion", c.SAMLAssertion)
 	u.RawQuery = values.Encode()
 	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
@@ -227,7 +231,7 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) (
 	}
 	// pToken will be a url with all of the queries
 	if pToken == "" {
-		u = c.baseURL.JoinPath(c.baseURL.RawPath, "/odata/v2/EmpJob")
+		u = c.baseURL.JoinPath(c.baseURL.RawPath, empJobEP)
 		values := u.Query()
 		values.Add("$expand", `userNav,employmentNav,companyNav,businessUnitNav,divisionNav,departmentNav,locationNav,costCenterNav,positionNav, employeeClassNav,emplStatusNav/picklistLabels,
 		managerUserNav,companyNav,employmentNav,companyNav/countryNav,employeeClassNav/picklistLabels`)
