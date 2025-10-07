@@ -46,56 +46,16 @@ func getConnector(ctx context.Context, config *cfg.Successfactors) (types.Connec
 		return nil, err
 	}
 
-	companyID := config.CompanyId
-	if companyID == "" {
-		return nil, fmt.Errorf("company-id is required")
-	}
-
-	clientID := config.Cid
-	if clientID == "" {
-		return nil, fmt.Errorf("cid is required")
-	}
-
-	certificate := config.PublicKey
-	if certificate == "" {
-		return nil, fmt.Errorf("public-key is required")
-	}
-
-	privateKey := config.PrivateKey
-	if privateKey == "" {
-		return nil, fmt.Errorf("private-key is required")
-	}
-
-	instanceURL := config.InstanceUrl
-	if instanceURL == "" {
-		return nil, fmt.Errorf("instance-url is required")
-	}
-
-	issuerURL := config.IssuerUrl
-	if issuerURL == "" {
-		return nil, fmt.Errorf("issuer-url is required")
-	}
-
-	username := config.SubjectNameId
-	if username == "" {
-		return nil, fmt.Errorf("subject-name-id is required")
-	}
-
-	samlAPIKey := config.SamlApiKey
-	if samlAPIKey == "" {
-		return nil, fmt.Errorf("saml-api-key is required")
-	}
-
 	cb, err := connector.New(
 		ctx,
-		companyID,
-		clientID,
-		certificate,
-		privateKey,
-		instanceURL,
-		issuerURL,
-		username,
-		samlAPIKey,
+		config.CompanyId,
+		config.Cid,
+		config.PublicKey,
+		config.PrivateKey,
+		config.InstanceUrl,
+		config.IssuerUrl,
+		config.SubjectNameId,
+		config.SamlApiKey,
 	)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
