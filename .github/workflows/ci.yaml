@@ -21,13 +21,13 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Install Go
         if: success()
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: go tests
         run: (set -o pipefail && go test -v -covermode=count -json ./... | tee test.json)
       - name: annotate go tests
@@ -49,12 +49,12 @@ jobs:
       BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
       BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: Build baton-successfactors
         run: go build ./cmd/baton-successfactors
       - name: Run baton-successfactors
