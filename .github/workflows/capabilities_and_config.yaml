@@ -32,10 +32,10 @@ jobs:
           BATON_COMPANY_ID: "company-id"
           BATON_CID: "cid"
           BATON_SAML_API_KEY: "saml-api-key"
-          BATON_PUBLIC_KEY: "public-key"
-          BATON_PRIVATE_KEY: "private-key"
-          BATON_INSTANCE_URL: "instance-url"
-          BATON_ISSUER_URL: "issuer-url"
+          BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
+          BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
+          BATON_INSTANCE_URL: "https://example.com"
+          BATON_ISSUER_URL: "https://example.com"
           BATON_SUBJECT_NAME_ID: "subject-name-id"
         run: ./connector capabilities > baton_capabilities.json
 
