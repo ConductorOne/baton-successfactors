@@ -9,9 +9,9 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 	"github.com/conductorone/baton-sdk/pkg/field"
 	"github.com/conductorone/baton-sdk/pkg/types"
+	cfg "github.com/conductorone/baton-successfactors/pkg/config"
 	"github.com/conductorone/baton-successfactors/pkg/connector"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -24,9 +24,7 @@ func main() {
 		ctx,
 		"baton-successfactors",
 		getConnector,
-		field.Configuration{
-			Fields: ConfigurationFields,
-		},
+		cfg.Config,
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -42,31 +40,33 @@ func main() {
 	}
 }
 
-func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, error) {
+func getConnector(ctx context.Context, config *cfg.Successfactors) (types.ConnectorServer, error) {
 	l := ctxzap.Extract(ctx)
-	if err := ValidateConfig(v); err != nil {
+	if err := field.Validate(cfg.Config, config); err != nil {
 		return nil, err
 	}
 
 	cb, err := connector.New(
 		ctx,
-		v.GetString(CompIdField.FieldName),
-		v.GetString(ClientIdField.FieldName),
-		v.GetString(PubKeyField.FieldName),
-		v.GetString(PrivKeyField.FieldName),
-		v.GetString(InstanceUrlField.FieldName),
-		v.GetString(IssuerUrlField.FieldName),
-		v.GetString(SubjectNameIdField.FieldName),
-		v.GetString(SAMLAPIKeyField.FieldName),
+		config.CompanyId,
+		config.Cid,
+		config.PublicKey,
+		config.PrivateKey,
+		config.InstanceUrl,
+		config.IssuerUrl,
+		config.SubjectNameId,
+		config.SamlApiKey,
 	)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
 	}
-	connector, err := connectorbuilder.NewConnector(ctx, cb)
+
+	conn, err := connectorbuilder.NewConnector(ctx, cb)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
 	}
-	return connector, nil
+
+	return conn, nil
 }
