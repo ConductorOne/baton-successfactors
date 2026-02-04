@@ -16,7 +16,8 @@
       },
       "capabilities":  [
         "CAPABILITY_SYNC"
-      ]
+      ],
+      "permissions":  {}
     }
   ],
   "connectorCapabilities":  [
