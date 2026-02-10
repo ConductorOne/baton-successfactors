@@ -1,6 +1,6 @@
 ![Baton Logo](./baton-logo.png)
 
-# `baton-successfactors` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-successfactors.svg)](https://pkg.go.dev/github.com/conductorone/baton-successfactors) ![main ci](https://github.com/conductorone/baton-successfactors/actions/workflows/main.yaml/badge.svg)
+# `baton-successfactors` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-successfactors.svg)](https://pkg.go.dev/github.com/conductorone/baton-successfactors) ![ci](https://github.com/conductorone/baton-successfactors/actions/workflows/ci.yaml/badge.svg) ![verify](https://github.com/conductorone/baton-successfactors/actions/workflows/verify.yaml/badge.svg)
 
 `baton-successfactors` is a connector for SAP SuccessFactors built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the OData V2 protocol to sync data about users.
 
