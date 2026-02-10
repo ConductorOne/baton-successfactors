@@ -4,7 +4,7 @@ go 1.25.2
 
 require (
 	github.com/beevik/etree v1.5.0
-	github.com/conductorone/baton-sdk v0.7.16
+	github.com/conductorone/baton-sdk v0.7.18
 	github.com/crewjam/saml v0.4.14
 	github.com/ennyjfrick/ruleguard-logfatal v0.0.2
 	github.com/google/uuid v1.6.0
