@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	empJobEP = "/odata/v2/EmpJob" // empJobEP is used to get information about the users.
+	empJobEP        = "/odata/v2/EmpJob"                   // empJobEP is used to get information about the users.
+	dynamicGroupEP  = "/odata/v2/DynamicGroup"             // dynamicGroupEP is used to get information about groups.
+	expandedGroupEP = "/odata/v2/getExpandedDynamicGroupById" // expandedGroupEP is used to get expanded group details including members.
 
 	tokenPath      = "/oauth/token"                                  //nolint:gosec // tokenPath does not contain sensitive credentials. It's an endpoint.
 	tokenGrantType = "urn:ietf:params:oauth:grant-type:saml2-bearer" //nolint:gosec // tokenGrantType does not contain sensitive credentials.
@@ -252,4 +254,54 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) (
 		return nil, "", fmt.Errorf("failed to make request: %w", err)
 	}
 	return response.Ds.Results, response.Ds.Next, nil
+}
+
+func (c *SuccessFactorsClient) GetGroups(ctx context.Context, pToken string) ([]DynamicGroupResult, string, error) {
+	var response DynamicGroupList
+	var u *url.URL
+	bearer, err := c.GetBearer(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get bearer: %w", err)
+	}
+	reqOpts := []uhttp.RequestOption{
+		uhttp.WithHeader("Authorization", "Bearer "+bearer),
+	}
+	if pToken == "" {
+		u = c.baseURL.JoinPath(c.baseURL.RawPath, dynamicGroupEP)
+		values := u.Query()
+		values.Add("$format", "json")
+		values.Add("$select", "groupID,groupName,groupType,staticGroup,totalMemberCount,createdBy")
+		u.RawQuery = values.Encode()
+	} else {
+		u, err = url.Parse(pToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to parse next token: %w", err)
+		}
+	}
+	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to list groups: %w", err)
+	}
+	return response.Ds.Results, response.Ds.Next, nil
+}
+
+func (c *SuccessFactorsClient) GetExpandedGroup(ctx context.Context, groupID string) (*ExpandedDynamicGroupResult, error) {
+	var response ExpandedDynamicGroup
+	bearer, err := c.GetBearer(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bearer: %w", err)
+	}
+	reqOpts := []uhttp.RequestOption{
+		uhttp.WithHeader("Authorization", "Bearer "+bearer),
+	}
+	u := c.baseURL.JoinPath(c.baseURL.RawPath, expandedGroupEP)
+	values := u.Query()
+	values.Add("groupId", groupID)
+	values.Add("$format", "json")
+	u.RawQuery = values.Encode()
+	err = c.doRequest(ctx, http.MethodGet, u, reqOpts, nil, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get expanded group: %w", err)
+	}
+	return &response.D, nil
 }

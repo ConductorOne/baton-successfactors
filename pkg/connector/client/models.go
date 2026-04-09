@@ -1,5 +1,7 @@
 package client
 
+import "encoding/json"
+
 type Bearer struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -115,4 +117,57 @@ type D struct {
 }
 type SuccessFactorsUserIdList struct {
 	Ds D `json:"d"`
+}
+
+// DynamicGroup models for the /odata/v2/DynamicGroup endpoint.
+type DynamicGroupResult struct {
+	Metadata         Metadata    `json:"__metadata"`
+	GroupID          json.Number `json:"groupID"`
+	GroupName        string      `json:"groupName"`
+	GroupType        string      `json:"groupType"`
+	StaticGroup      bool        `json:"staticGroup"`
+	TotalMemberCount json.Number `json:"totalMemberCount"`
+	CreatedBy        string      `json:"createdBy"`
+}
+
+type DynamicGroupD struct {
+	Results []DynamicGroupResult `json:"results"`
+	Next    string               `json:"__next,omitempty"`
+}
+
+type DynamicGroupList struct {
+	Ds DynamicGroupD `json:"d"`
+}
+
+// ExpandedDynamicGroup models for the /odata/v2/getExpandedDynamicGroupById endpoint.
+type ExpandedDGPeoplePoolUser struct {
+	Metadata Metadata `json:"__metadata"`
+	UserID   string   `json:"userId"`
+}
+
+type ExpandedDGPeoplePool struct {
+	Metadata Metadata                   `json:"__metadata"`
+	Users    ExpandedDGPeoplePoolUsers  `json:"dgPeoplePoolUsersNav"`
+}
+
+type ExpandedDGPeoplePoolUsers struct {
+	Results []ExpandedDGPeoplePoolUser `json:"results"`
+}
+
+type ExpandedDGPeoplePools struct {
+	Results []ExpandedDGPeoplePool `json:"results"`
+}
+
+type ExpandedDynamicGroupResult struct {
+	Metadata         Metadata              `json:"__metadata"`
+	GroupID          json.Number           `json:"groupID"`
+	GroupName        string                `json:"groupName"`
+	GroupType        string                `json:"groupType"`
+	StaticGroup      bool                  `json:"staticGroup"`
+	TotalMemberCount json.Number           `json:"totalMemberCount"`
+	DgIncludePools   ExpandedDGPeoplePools `json:"dgIncludePoolsNav"`
+}
+
+type ExpandedDynamicGroup struct {
+	D ExpandedDynamicGroupResult `json:"d"`
 }

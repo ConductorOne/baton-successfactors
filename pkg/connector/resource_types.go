@@ -15,4 +15,13 @@ var (
 		},
 		Annotations: annotations.New(&v2.SkipEntitlementsAndGrants{}),
 	}
+
+	// The group resource type is for DynamicGroup objects from SuccessFactors.
+	resourceTypeGroup = &v2.ResourceType{
+		Id:          "group",
+		DisplayName: "Group",
+		Traits: []v2.ResourceType_Trait{
+			v2.ResourceType_TRAIT_GROUP,
+		},
+	}
 )
