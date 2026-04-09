@@ -11,6 +11,8 @@ import (
 	sdkGrant "github.com/conductorone/baton-sdk/pkg/types/grant"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
 )
 
 type groupBuilder struct {
@@ -83,12 +85,19 @@ func (g *groupBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ 
 }
 
 // Grants returns the users who are members of the group by calling the expanded group API.
+// If the expanded group API is unavailable or returns an unexpected response, grants are
+// skipped for that group with a warning rather than failing the entire sync.
 func (g *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
+	l := ctxzap.Extract(ctx)
 	groupID := resource.Id.Resource
 
 	expanded, err := g.client.GetExpandedGroup(ctx, groupID)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("failed to get expanded group %s: %w", groupID, err)
+		l.Warn("baton-successfactors: failed to get expanded group, skipping membership grants",
+			zap.String("groupID", groupID),
+			zap.Error(err),
+		)
+		return nil, "", nil, nil
 	}
 
 	var grants []*v2.Grant
