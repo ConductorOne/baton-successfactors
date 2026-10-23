@@ -77,8 +77,6 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	}
 
 	userTraitOptions := []resource.UserTraitOption{
-		resource.WithUserProfile(profile),
-		resource.WithStatus(status),
 		resource.WithUserLogin(user.UserNav.Username),
 		resource.WithEmail(user.UserNav.Email, true),
 	}
@@ -87,6 +85,8 @@ func userResource(user client.Results) (*v2.Resource, error) {
 		resourceTypeUser,
 		user.UserNav.Username,
 		userTraitOptions,
+		resource.WithResourceProfile(profile),
+		resource.WithResourceStatus(v2.Status_ResourceStatus(status), ""),
 	)
 	if err != nil {
 		return nil, err
