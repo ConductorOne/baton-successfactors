@@ -21,9 +21,9 @@ type userBuilder struct {
 
 func userResource(user client.Results) (*v2.Resource, error) {
 	displayName := user.UserNav.Username
-	status := v2.UserTrait_Status_STATUS_DISABLED
+	status := v2.Status_RESOURCE_STATUS_DISABLED
 	if user.EmploymentNav.EndDate == "" {
-		status = v2.UserTrait_Status_STATUS_ENABLED
+		status = v2.Status_RESOURCE_STATUS_ENABLED
 	} else {
 		r := regexp.MustCompile(`-?\d+`)
 		// Successfactors uses an outdated Date format so we have to parse it
@@ -35,7 +35,7 @@ func userResource(user client.Results) (*v2.Resource, error) {
 		end := time.UnixMilli(i)
 		// -1 means we are before the endDate.
 		if time.Now().Compare(end) == -1 {
-			status = v2.UserTrait_Status_STATUS_ENABLED
+			status = v2.Status_RESOURCE_STATUS_ENABLED
 		}
 	}
 	profile := make(map[string]interface{})
@@ -86,7 +86,7 @@ func userResource(user client.Results) (*v2.Resource, error) {
 		user.UserNav.Username,
 		userTraitOptions,
 		resource.WithResourceProfile(profile),
-		resource.WithResourceStatus(v2.Status_ResourceStatus(status), ""),
+		resource.WithResourceStatus(status, ""),
 	)
 	if err != nil {
 		return nil, err
