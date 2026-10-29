@@ -238,7 +238,7 @@ stringData:
 
 #### Key files configuration
 
-The `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` values are paths to PEM files, not the PEM contents. This applies from this release. Store the key files in a separate Secret and mount it into the connector container.
+The `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` values are paths to PEM files, not the PEM contents. Earlier versions of the connector took the PEM contents in these variables. If your deployment sets them to PEM contents, move the keys to the Secret below. Store the key files in a separate Secret and mount it into the connector container.
 
 ```yaml
 # baton-successfactors-keys.yaml
