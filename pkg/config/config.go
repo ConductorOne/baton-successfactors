@@ -9,6 +9,7 @@ var (
 		"company-id",
 		field.WithDisplayName("Company ID"),
 		field.WithDescription("Company ID"),
+		field.WithPlaceholder("Your SuccessFactors Company ID"),
 		field.WithRequired(true),
 	)
 
@@ -16,13 +17,16 @@ var (
 		"cid",
 		field.WithDisplayName("Client ID"),
 		field.WithDescription("Client ID"),
+		field.WithPlaceholder("Your SuccessFactors Client ID"),
 		field.WithRequired(true),
 	)
 
-	PubKeyField = field.StringField(
+	PubKeyField = field.FileUploadField(
 		"public-key",
+		[]string{".pem", ".crt"},
 		field.WithDisplayName("Certificate (PEM)"),
-		field.WithDescription("Public Key"),
+		field.WithDescription("Public key certificate (PEM file)"),
+		field.WithPlaceholder("Your SuccessFactors certificate"),
 		field.WithRequired(true),
 		field.WithIsSecret(true),
 	)
@@ -31,14 +35,17 @@ var (
 		"saml-api-key",
 		field.WithDisplayName("SAML API key"),
 		field.WithDescription("SAML API Key"),
+		field.WithPlaceholder("Your SuccessFactors SAML API key"),
 		field.WithRequired(true),
 		field.WithIsSecret(true),
 	)
 
-	PrivKeyField = field.StringField(
+	PrivKeyField = field.FileUploadField(
 		"private-key",
+		[]string{".pem", ".key"},
 		field.WithDisplayName("Private Key (PEM)"),
-		field.WithDescription("Private Key"),
+		field.WithDescription("Private key (PEM file)"),
+		field.WithPlaceholder("Your SuccessFactors private key"),
 		field.WithRequired(true),
 		field.WithIsSecret(true),
 	)
@@ -47,6 +54,7 @@ var (
 		"instance-url",
 		field.WithDisplayName("Instance URL"),
 		field.WithDescription("Your Success Factors domain, ex: https://successfactorsserver.com"),
+		field.WithPlaceholder("Your SuccessFactors instance URL"),
 		field.WithRequired(true),
 	)
 
@@ -54,6 +62,7 @@ var (
 		"issuer-url",
 		field.WithDisplayName("Issuer URL"),
 		field.WithDescription("Your SAML Issuer domain, ex: https://exampleissuer.com"),
+		field.WithPlaceholder("Your SuccessFactors issuer URL"),
 		field.WithRequired(true),
 	)
 
@@ -61,6 +70,7 @@ var (
 		"subject-name-id",
 		field.WithDisplayName("Subject name ID"),
 		field.WithDescription("Subject Name ID"),
+		field.WithPlaceholder("Your SuccessFactors subject name ID"),
 		field.WithRequired(true),
 	)
 

@@ -96,6 +96,7 @@
       "name": "company-id",
       "displayName": "Company ID",
       "description": "Company ID",
+      "placeholder": "Your SuccessFactors Company ID",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -107,6 +108,7 @@
       "name": "cid",
       "displayName": "Client ID",
       "description": "Client ID",
+      "placeholder": "Your SuccessFactors Client ID",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -118,6 +120,7 @@
       "name": "saml-api-key",
       "displayName": "SAML API key",
       "description": "SAML API Key",
+      "placeholder": "Your SuccessFactors SAML API key",
       "isRequired": true,
       "isSecret": true,
       "stringField": {
@@ -129,31 +132,44 @@
     {
       "name": "public-key",
       "displayName": "Certificate (PEM)",
-      "description": "Public Key",
+      "description": "Public key certificate (PEM file)",
+      "placeholder": "Your SuccessFactors certificate",
       "isRequired": true,
       "isSecret": true,
       "stringField": {
         "rules": {
           "isRequired": true
-        }
+        },
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".crt"
+        ]
       }
     },
     {
       "name": "private-key",
       "displayName": "Private Key (PEM)",
-      "description": "Private Key",
+      "description": "Private key (PEM file)",
+      "placeholder": "Your SuccessFactors private key",
       "isRequired": true,
       "isSecret": true,
       "stringField": {
         "rules": {
           "isRequired": true
-        }
+        },
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".key"
+        ]
       }
     },
     {
       "name": "instance-url",
       "displayName": "Instance URL",
       "description": "Your Success Factors domain, ex: https://successfactorsserver.com",
+      "placeholder": "Your SuccessFactors instance URL",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -165,6 +181,7 @@
       "name": "issuer-url",
       "displayName": "Issuer URL",
       "description": "Your SAML Issuer domain, ex: https://exampleissuer.com",
+      "placeholder": "Your SuccessFactors issuer URL",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -176,6 +193,7 @@
       "name": "subject-name-id",
       "displayName": "Subject name ID",
       "description": "Subject Name ID",
+      "placeholder": "Your SuccessFactors subject name ID",
       "isRequired": true,
       "stringField": {
         "rules": {
