@@ -43,7 +43,7 @@ baton resources
 ## docker
 
 ```
-docker run --rm -v $(pwd):/out -e BATON_DOMAIN_URL=domain_url -e BATON_API_KEY=apiKey -e BATON_USERNAME=username public.ecr.aws/conductorone/baton-successfactors:latest -f "/out/sync.c1z"
+docker run --rm -v $(pwd):/out -e BATON_COMPANY_ID=company_id -e BATON_CID=client_id -e BATON_SAML_API_KEY=saml_api_key -e BATON_INSTANCE_URL=instance_url -e BATON_ISSUER_URL=issuer_url -e BATON_SUBJECT_NAME_ID=subject_name_id -e BATON_PUBLIC_KEY=/out/sf-cert.pem -e BATON_PRIVATE_KEY=/out/sf-key.pem public.ecr.aws/conductorone/baton-successfactors:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
