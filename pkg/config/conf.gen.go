@@ -7,14 +7,14 @@ type Successfactors struct {
 	CompanyId string `mapstructure:"company-id"`
 	Cid string `mapstructure:"cid"`
 	SamlApiKey string `mapstructure:"saml-api-key"`
-	PublicKey string `mapstructure:"public-key"`
-	PrivateKey string `mapstructure:"private-key"`
+	PublicKey []byte `mapstructure:"public-key"`
+	PrivateKey []byte `mapstructure:"private-key"`
 	InstanceUrl string `mapstructure:"instance-url"`
 	IssuerUrl string `mapstructure:"issuer-url"`
 	SubjectNameId string `mapstructure:"subject-name-id"`
 }
 
-func (c* Successfactors) findFieldByTag(tagValue string) (any, bool) {
+func (c *Successfactors) findFieldByTag(tagValue string) (any, bool) {
 	v := reflect.ValueOf(c).Elem() // Dereference pointer to struct
 	t := v.Type()
 
@@ -46,11 +46,13 @@ func (c *Successfactors) GetString(fieldName string) string {
 	if !ok {
 		return ""
 	}
-	t, ok := v.(string)
-	if !ok {
-		panic("wrong type")
+	if t, ok := v.(string); ok {
+		return t
 	}
-	return t
+	if t, ok := v.([]byte); ok {
+		return string(t)
+	}
+	panic("wrong type")
 }
 
 func (c *Successfactors) GetInt(fieldName string) int {
