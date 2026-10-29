@@ -9,8 +9,6 @@ jobs:
       BATON_COMPANY_ID: ${{ secrets.SF_COMPANY_ID }}
       BATON_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
       BATON_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
-      BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
-      BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
       BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
       BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
     steps:
@@ -22,6 +20,19 @@ jobs:
           go-version-file: go.mod
       - name: Build baton-successfactors
         run: go build ./cmd/baton-successfactors
+      - name: Write key files
+        # The connector reads --public-key and --private-key from file paths.
+        # The paths are exported with GITHUB_ENV, because the runner context
+        # is not available in the job-level env block.
+        env:
+          SF_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
+          SF_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
+        run: |
+          umask 077
+          printf '%s' "$SF_PUBLIC_KEY" > "$RUNNER_TEMP/sf-public-key.pem"
+          printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
+          echo "BATON_PUBLIC_KEY=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
+          echo "BATON_PRIVATE_KEY=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
       - name: Run baton-successfactors
         run: ./baton-successfactors
       - name: Install baton
@@ -34,8 +45,6 @@ jobs:
           BATON_COMPANY_ID: ${{ secrets.SF_COMPANY_ID }}
           BATON_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
           BATON_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
-          BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
-          BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
           BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
           BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
           BATON_PRINCIPAL: "rsmith"
