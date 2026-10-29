@@ -8,8 +8,6 @@ import (
 	"time"
 
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
 )
@@ -100,31 +98,31 @@ func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 
 // List returns all the users from the database as resource objects.
 // Users include a UserTrait because they are the 'shape' of a standard user.
-func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, pToken *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
-	users, paginationURL, err := o.client.GetUserData(ctx, pToken.Token)
+func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resource.SyncOpAttrs) ([]*v2.Resource, *resource.SyncOpResults, error) {
+	users, paginationURL, err := o.client.GetUserData(ctx, opts.PageToken.Token)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("failed to list users: %w", err)
+		return nil, nil, fmt.Errorf("baton-successfactors: failed to list users: %w", err)
 	}
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
 		ur, err := userResource(user)
 		if err != nil {
-			return nil, "", nil, err
+			return nil, nil, fmt.Errorf("baton-successfactors: failed to build user resource: %w", err)
 		}
 		rv = append(rv, ur)
 	}
 
-	return rv, paginationURL, nil, nil
+	return rv, &resource.SyncOpResults{NextPageToken: paginationURL}, nil
 }
 
 // Entitlements always returns an empty slice for users.
-func (o *userBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Entitlements(_ context.Context, _ *v2.Resource, _ resource.SyncOpAttrs) ([]*v2.Entitlement, *resource.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 // Grants always returns an empty slice for users since they don't have any entitlements.
-func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Grants(_ context.Context, _ *v2.Resource, _ resource.SyncOpAttrs) ([]*v2.Grant, *resource.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 func newUserBuilder(client *client.SuccessFactorsClient) *userBuilder {
