@@ -6,8 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/beevik/etree"
@@ -214,6 +216,7 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	u.RawQuery = values.Encode()
 	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
 	if err != nil {
+		debugTokenBody(ctx, u.String())
 		return "", fmt.Errorf("failed to get bearer: %w", err)
 	}
 	return response.AccessToken, nil
@@ -252,4 +255,21 @@ func (c *SuccessFactorsClient) GetUserData(ctx context.Context, pToken string) (
 		return nil, "", fmt.Errorf("failed to make request: %w", err)
 	}
 	return response.Ds.Results, response.Ds.Next, nil
+}
+
+// DEBUG ONLY, do not merge: print the token endpoint response body (not the request URL).
+func debugTokenBody(ctx context.Context, rawURL string) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, rawURL, nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG token request error: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	fmt.Fprintf(os.Stderr, "DEBUG token status=%d body=%s\n", resp.StatusCode, body)
 }

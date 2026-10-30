@@ -33,6 +33,9 @@ jobs:
           printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
           echo "BATON_PUBLIC_KEY=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
           echo "BATON_PRIVATE_KEY=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
+      - name: DEBUG certificate dates
+        run: |
+          openssl x509 -noout -subject -issuer -startdate -enddate -in "$RUNNER_TEMP/sf-public-key.pem" || true
       - name: Run baton-successfactors
         run: ./baton-successfactors
       - name: Install baton
