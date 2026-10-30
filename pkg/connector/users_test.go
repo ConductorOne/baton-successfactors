@@ -49,6 +49,13 @@ func TestUserBuilderListPagination(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
 		case "/oauth/token":
+			// SuccessFactors rejects a SAML assertion in the URL, so it must be in the form body.
+			assert.Empty(t, r.URL.RawQuery)
+			assert.NoError(t, r.ParseForm())
+			assert.NotEmpty(t, r.PostForm.Get("assertion"))
+			assert.Equal(t, "company", r.PostForm.Get("company_id"))
+			assert.Equal(t, "cid", r.PostForm.Get("client_id"))
+			assert.Equal(t, "urn:ietf:params:oauth:grant-type:saml2-bearer", r.PostForm.Get("grant_type"))
 			_, _ = w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer","expires_in":3600}`))
 		case "/odata/v2/EmpJob":
 			mu.Lock()
