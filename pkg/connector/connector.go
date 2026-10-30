@@ -2,11 +2,14 @@ package connector
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
+	"github.com/conductorone/baton-sdk/pkg/cli"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
+	cfg "github.com/conductorone/baton-successfactors/pkg/config"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
 )
 
@@ -17,8 +20,8 @@ type Connector struct {
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
-func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
-	return []connectorbuilder.ResourceSyncer{
+func (d *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncerV2 {
+	return []connectorbuilder.ResourceSyncerV2{
 		newUserBuilder(d.client),
 	}
 }
@@ -32,8 +35,8 @@ func (d *Connector) Asset(ctx context.Context, asset *v2.AssetRef) (string, io.R
 // Metadata returns metadata about the connector.
 func (d *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
 	return &v2.ConnectorMetadata{
-		DisplayName: "My Baton Connector",
-		Description: "The template implementation of a baton connector",
+		DisplayName: "SuccessFactors",
+		Description: "Connector that syncs users from SAP SuccessFactors",
 	}, nil
 }
 
@@ -44,34 +47,25 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context,
-	compId string,
-	clientId string,
-	pubkey string,
-	privkey string,
-	instanceURL string,
-	issuerURL string,
-	subjectNameId string,
-	samlapikey string,
-) (*Connector, error) {
+// The public and private key values are PEM contents, read from files by the SDK.
+func New(ctx context.Context, config *cfg.Successfactors, opts *cli.ConnectorOpts) (connectorbuilder.ConnectorBuilderV2, []connectorbuilder.Opt, error) {
 	successFactorsClient, err := client.New(
 		ctx,
-		instanceURL,
-		compId,
-		clientId,
-		pubkey,
-		privkey,
-		issuerURL,
-		subjectNameId,
-		samlapikey,
+		config.InstanceUrl,
+		config.CompanyId,
+		config.Cid,
+		string(config.PublicKey),
+		string(config.PrivateKey),
+		config.IssuerUrl,
+		config.SubjectNameId,
+		config.SamlApiKey,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, fmt.Errorf("baton-successfactors: failed to create client: %w", err)
 	}
-	connector := Connector{
+	return &Connector{
 		client:      successFactorsClient,
 		ctx:         ctx,
-		instanceUrl: instanceURL,
-	}
-	return &connector, nil
+		instanceUrl: config.InstanceUrl,
+	}, nil, nil
 }

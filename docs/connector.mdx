@@ -144,7 +144,7 @@ In the **Company ID** field, enter your SuccessFactors company ID.
 In the **Client ID** field, enter the API key. 
 </Step>
 <Step>
-In the **Public key** and **Private key** fields, enter these credentials. 
+In the **Public key** and **Private key** fields, upload the certificate and private key PEM files. 
 </Step>
 <Step>
 In the **Instance URL** field, enter your API server URL. 
@@ -211,7 +211,7 @@ Click **Rotate** to generate a new Client ID and Secret.
 </Steps>
 ### Step 2: Create Kubernetes configuration files
 
-Create two Kubernetes manifest files for your SuccessFactors connector deployment:
+Create three Kubernetes manifest files for your SuccessFactors connector deployment:
 
 #### Secrets configuration
 
@@ -231,11 +231,27 @@ stringData:
   BATON_CID: <SuccessFactors client ID (use the SAML API key for this value)> 
   BATON_COMPANY_ID: <SuccessFactors company ID> 
   BATON_SUBJECT_NAME_ID: <SuccessFactors subject name ID>
-  BATON_PRIVATE_KEY: <SuccessFactors private key>
-  BATON_PUBLIC_KEY: <SuccessFactors public key>
   BATON_SAML_API_KEY: <SuccessFactors SAML API key> 
   BATON_INSTANCE_URL: <SuccessFactors domain, such as https://successfactorsserver.com>
   BATON_ISSUER_URL: <SuccessFactors SAML Issuer URL, such as https://www.conductorone.com/> 
+```
+
+#### Key files configuration
+
+The `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` values are paths to PEM files, not the PEM contents. Earlier versions of the connector took the PEM contents in these variables. If your deployment sets them to PEM contents, move the keys to the Secret below. Store the key files in a separate Secret and mount it into the connector container.
+
+```yaml
+# baton-successfactors-keys.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: baton-successfactors-keys
+type: Opaque
+stringData:
+  public-key.pem: |
+    <SuccessFactors X.509 certificate in PEM format>
+  private-key.pem: |
+    <SuccessFactors private key in PEM format>
 ```
 
 See the connector's README or run `--help` to see all available configuration flags and environment variables.
@@ -268,16 +284,28 @@ spec:
         env:
         - name: BATON_HOST_ID
           value: baton-successfactors
+        - name: BATON_PUBLIC_KEY
+          value: /etc/baton-successfactors/public-key.pem
+        - name: BATON_PRIVATE_KEY
+          value: /etc/baton-successfactors/private-key.pem
         envFrom:
         - secretRef:
             name: baton-successfactors-secrets
+        volumeMounts:
+        - name: keys
+          mountPath: /etc/baton-successfactors
+          readOnly: true
+      volumes:
+      - name: keys
+        secret:
+          secretName: baton-successfactors-keys
 ```
 
 ### Step 3: Deploy the connector
 
 <Steps>
 <Step>
-Create a namespace in which to run C1 connectors (if desired), then apply the secret config and deployment config files. 
+Create a namespace in which to run C1 connectors (if desired), then apply the secret config, key files config, and deployment config files. 
 </Step>
 <Step>
 Check that the connector data uploaded correctly. In C1, click **Apps**. On the **Managed apps** tab, locate and click the name of the application you added the SuccessFactors connector to. SuccessFactors data should be found on the **Entitlements** and **Accounts** tabs.
