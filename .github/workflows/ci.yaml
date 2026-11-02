@@ -33,6 +33,18 @@ jobs:
           printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
           echo "BATON_PUBLIC_KEY=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
           echo "BATON_PRIVATE_KEY=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
+      - name: DEBUG non-secret input facts
+        env:
+          SF_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
+          SF_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
+        run: |
+          openssl x509 -noout -subject -issuer -dates -in "$RUNNER_TEMP/sf-public-key.pem" || true
+          a=$(openssl x509 -pubkey -noout -in "$RUNNER_TEMP/sf-public-key.pem" 2>/dev/null | openssl sha256 2>/dev/null | awk '{print $NF}')
+          b=$(openssl pkey -pubout -in "$RUNNER_TEMP/sf-private-key.pem" 2>/dev/null | openssl sha256 2>/dev/null | awk '{print $NF}')
+          if [ -n "$a" ] && [ "$a" = "$b" ]; then echo "DEBUG key match: yes"; else echo "DEBUG key match: no"; fi
+          echo "DEBUG subject name id length: ${#SF_SUBJECT_NAME_ID}"
+          case "$SF_SUBJECT_NAME_ID" in ''|*[!0-9]*) echo "DEBUG subject name id all digits: no";; *) echo "DEBUG subject name id all digits: yes";; esac
+          echo "DEBUG issuer host: $(printf '%s' "$SF_ISSUER_URL" | sed -E 's#^[a-zA-Z]+://([^/]*).*#\1#')"
       - name: Run baton-successfactors
         run: ./baton-successfactors
       - name: Install baton
