@@ -62,13 +62,27 @@ func (e *env) client(t *testing.T, company, subject string) *client.SuccessFacto
 	return c
 }
 
-func post(t *testing.T, target string, form url.Values) (int, string) {
+// do sends one request and returns the status and body.
+func do(t *testing.T, method, target, contentType, bearer, body string) (int, string) {
 	t.Helper()
-	resp, err := http.Post(target, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(t.Context(), method, target, strings.NewReader(body))
+	require.NoError(t, err)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	if bearer != "" {
+		req.Header.Set("Authorization", "Bearer "+bearer)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(resp.Body)
 	return resp.StatusCode, string(b)
+}
+
+func post(t *testing.T, target string, form url.Values) (int, string) {
+	t.Helper()
+	return do(t, http.MethodPost, target, "application/x-www-form-urlencoded", "", form.Encode())
 }
 
 func TestTokenURLParameterRejected(t *testing.T) {
@@ -80,10 +94,8 @@ func TestTokenURLParameterRejected(t *testing.T) {
 
 func TestTokenWrongContentType(t *testing.T) {
 	e := validEnv(t, nil)
-	resp, err := http.Post(e.srv.URL+TokenPath, "application/json", strings.NewReader("{}"))
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	status, _ := do(t, http.MethodPost, e.srv.URL+TokenPath, "application/json", "", "{}")
+	assert.Equal(t, http.StatusBadRequest, status)
 }
 
 func TestSyncPagesWithRealClient(t *testing.T) {
@@ -172,17 +184,11 @@ func TestExpiredCertToggle(t *testing.T) {
 
 func TestEmpJobRequiresBearer(t *testing.T) {
 	e := validEnv(t, nil)
-	resp, err := http.Get(e.srv.URL + EmpJobPath)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	status, _ := do(t, http.MethodGet, e.srv.URL+EmpJobPath, "", "", "")
+	assert.Equal(t, http.StatusUnauthorized, status)
 
-	req, _ := http.NewRequest(http.MethodGet, e.srv.URL+EmpJobPath, nil)
-	req.Header.Set("Authorization", "Bearer made-up")
-	resp2, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp2.Body.Close()
-	assert.Equal(t, http.StatusUnauthorized, resp2.StatusCode)
+	status, _ = do(t, http.MethodGet, e.srv.URL+EmpJobPath, "", "made-up", "")
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestFailPage(t *testing.T) {
