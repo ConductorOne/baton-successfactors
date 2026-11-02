@@ -143,6 +143,8 @@ Other flags: `-page-size` (default 5), `-addr`, `-public-url`.
 
 Choose the status for `-fail-status` with care. The connector client retries a 5xx status, such as 500, for many minutes, so the sync seems to hang (a run did not end in 7 minutes). A 404 on a later page gives no error: the sync ends with only the users from the earlier pages. Use 400 to get a quick, clear failure.
 
+For the record, the baton-sdk syncer retries a 5xx status and 429 without a limit (waits of 1s, 2s, 3s, and so on, capped at 60s) and logs "retrying operation". Use `-fail-status 503` to see those logs, and stop the connector with Ctrl-C. Do not use a 5xx status in an automated check.
+
 The `-not_after` option of `openssl req` needs OpenSSL 3.4 or newer. With an older version, use `faketime` or sign with `openssl ca`.
 
 ## 8. Custom fixtures
