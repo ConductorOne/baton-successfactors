@@ -1,0 +1,1443 @@
+[
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10001",
+  "jobTitle": "Account Executive",
+  "localJobTitle": "Account Executive",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Robin",
+   "lastName": "Smith",
+   "mi": "",
+   "username": "rsmith",
+   "email": "rsmith@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10001",
+   "externalName_defaultValue": "Account Executive"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10002",
+  "jobTitle": "Sales Director",
+  "localJobTitle": "Sales Director",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Casey",
+   "lastName": "Dixon",
+   "mi": "J",
+   "username": "cdixon",
+   "email": "cdixon@bestrunsap.example",
+   "custom07": "Yes"
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10002",
+   "externalName_defaultValue": "Sales Director"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10003",
+  "jobTitle": "Consultant",
+  "localJobTitle": "Consultant",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Alex",
+   "lastName": "Jones",
+   "mi": "",
+   "username": "ajones",
+   "email": "ajones@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/",
+   "endDate": "/Date(4102444800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10003",
+   "externalName_defaultValue": "Consultant"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10004",
+  "jobTitle": "Analyst",
+  "localJobTitle": "Analyst",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Bailey",
+   "lastName": "Wong",
+   "mi": "",
+   "username": "bwong",
+   "email": "bwong@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/",
+   "endDate": "/Date(1735603200000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Terminated"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10004",
+   "externalName_defaultValue": "Analyst"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10005",
+  "jobTitle": "Engineer",
+  "localJobTitle": "Engineer",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Charlie",
+   "lastName": "Müller",
+   "mi": "",
+   "username": "cmuller",
+   "email": "cmuller@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/",
+   "endDate": "/Date(1735603200000+0000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Terminated"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10005",
+   "externalName_defaultValue": "Engineer"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10006",
+  "jobTitle": "Designer",
+  "localJobTitle": "Designer",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Dana",
+   "lastName": "Garcia",
+   "mi": "",
+   "username": "dgarcia",
+   "email": "dgarcia@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": []
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": []
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10006",
+   "externalName_defaultValue": "Designer"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10007",
+  "jobTitle": "Support Lead",
+  "localJobTitle": "Support Lead",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Eli",
+   "lastName": "Okafor",
+   "mi": "",
+   "username": "eokafor",
+   "email": "eokafor@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "managerUserNav": null,
+  "companyNav": null,
+  "positionNav": null
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10008",
+  "jobTitle": "Architect",
+  "localJobTitle": "Architect",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Zoë",
+   "lastName": "Ångström",
+   "mi": "",
+   "username": "fçelik",
+   "email": "fcelik@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10008",
+   "externalName_defaultValue": "Architect"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10009",
+  "jobTitle": "VP Sales",
+  "localJobTitle": "VP Sales",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Gray",
+   "lastName": "Kim",
+   "mi": "",
+   "username": "gkim",
+   "email": "gkim@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10009",
+   "externalName_defaultValue": "VP Sales"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10010",
+  "jobTitle": "Recruiter",
+  "localJobTitle": "Recruiter",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Harper",
+   "lastName": "Lee",
+   "mi": "",
+   "username": "hlee",
+   "email": "hlee@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10010",
+   "externalName_defaultValue": "Recruiter"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10011",
+  "jobTitle": "Finance Partner",
+  "localJobTitle": "Finance Partner",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Indy",
+   "lastName": "Patel",
+   "mi": "",
+   "username": "ipatel",
+   "email": "ipatel@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10011",
+   "externalName_defaultValue": "Finance Partner"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ },
+ {
+  "__metadata": {
+   "uri": "https://mock.invalid/odata/v2/EmpJob",
+   "type": "SFOData.EmpJob"
+  },
+  "userId": "10012",
+  "jobTitle": "Operations Manager",
+  "localJobTitle": "Operations Manager",
+  "userNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "firstName": "Jules",
+   "lastName": "Novak",
+   "mi": "",
+   "username": "jnovak",
+   "email": "jnovak@bestrunsap.example",
+   "custom07": ""
+  },
+  "employmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/EmpEmployment",
+    "type": "SFOData.EmpEmployment"
+   },
+   "startDate": "/Date(1546300800000)/"
+  },
+  "employeeClassNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Regular"
+     }
+    ]
+   }
+  },
+  "emplStatusNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/PicklistOption",
+    "type": "SFOData.PicklistOption"
+   },
+   "picklistLabels": {
+    "results": [
+     {
+      "__metadata": {
+       "uri": "https://mock.invalid/odata/v2/PicklistLabel",
+       "type": "SFOData.PicklistLabel"
+      },
+      "label": "Active"
+     }
+    ]
+   }
+  },
+  "companyNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCompany",
+    "type": "SFOData.FOCompany"
+   },
+   "name_localized": "BestRun Germany",
+   "countryNav": {
+    "__metadata": {
+     "uri": "https://mock.invalid/odata/v2/Territory",
+     "type": "SFOData.Territory"
+    },
+    "territoryName": "Germany"
+   }
+  },
+  "positionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/Position",
+    "type": "SFOData.Position"
+   },
+   "code": "POS-10012",
+   "externalName_defaultValue": "Operations Manager"
+  },
+  "managerUserNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/User",
+    "type": "SFOData.User"
+   },
+   "userId": "10009",
+   "email": "gkim@bestrunsap.example"
+  },
+  "businessUnitNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOBusinessUnit",
+    "type": "SFOData.FOBusinessUnit"
+   },
+   "name": "Consumer Goods"
+  },
+  "divisionNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODivision",
+    "type": "SFOData.FODivision"
+   },
+   "name": "Sales"
+  },
+  "departmentNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FODepartment",
+    "type": "SFOData.FODepartment"
+   },
+   "name": "Field Sales"
+  },
+  "locationNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOLocation",
+    "type": "SFOData.FOLocation"
+   },
+   "name": "Walldorf"
+  },
+  "costCenterNav": {
+   "__metadata": {
+    "uri": "https://mock.invalid/odata/v2/FOCostCenter",
+    "type": "SFOData.FOCostCenter"
+   },
+   "name_defaultValue": "CC-1000"
+  }
+ }
+]
