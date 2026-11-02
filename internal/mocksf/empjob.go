@@ -30,13 +30,11 @@ func (s *server) handleEmpJob(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		start = tok.StartRow
-	} else {
+	} else if q.Get("$format") != "json" || !strings.Contains(q.Get("$select"), "userId") ||
+		!strings.Contains(q.Get("$expand"), "userNav") || !strings.Contains(q.Get("$expand"), "employmentNav") {
 		// The first page carries the query that the connector builds.
-		if q.Get("$format") != "json" || !strings.Contains(q.Get("$select"), "userId") ||
-			!strings.Contains(q.Get("$expand"), "userNav") || !strings.Contains(q.Get("$expand"), "employmentNav") {
-			writeError(w, http.StatusBadRequest, "Synthetic: $format=json, $select and $expand (userNav, employmentNav) are required.")
-			return
-		}
+		writeError(w, http.StatusBadRequest, "Synthetic: $format=json, $select and $expand (userNav, employmentNav) are required.")
+		return
 	}
 
 	page := start/s.cfg.PageSize + 1
