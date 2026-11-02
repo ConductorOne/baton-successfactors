@@ -78,7 +78,7 @@ func (s *server) verifyAssertion(encoded, recipient string) error {
 	}
 	el, err := vctx.Validate(doc.Root())
 	if err != nil {
-		return fmt.Errorf("signature check failed: %v", err)
+		return fmt.Errorf("signature check failed: %w", err)
 	}
 
 	// Read the claims from the validated element only.

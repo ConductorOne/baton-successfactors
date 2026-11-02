@@ -2,98 +2,174 @@ package connector
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/json"
-	"encoding/pem"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/pagination"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/conductorone/baton-successfactors/internal/mocksf"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
 )
 
-func testKeyPair(t *testing.T) (string, string) {
-	t.Helper()
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
-	tmpl := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject:      pkix.Name{CommonName: "test"},
-		NotBefore:    time.Now().Add(-time.Hour),
-		NotAfter:     time.Now().Add(time.Hour),
-	}
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
-	require.NoError(t, err)
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	return string(certPEM), string(keyPEM)
-}
+const (
+	testCompany = "company"
+	testClient  = "cid"
+	testIssuer  = "https://issuer.example"
+	testSubject = "subject"
+	testAPIKey  = "api-key"
+)
 
-func TestUserBuilderListPagination(t *testing.T) {
+// newMockClient starts the mock SuccessFactors server and returns a client for it.
+// It returns the request URIs that the mock gets on /odata/v2/EmpJob.
+func newMockClient(t *testing.T, users []json.RawMessage) (*client.SuccessFactorsClient, *httptest.Server, func() []string) {
+	t.Helper()
+	certPEM, keyPEM, err := mocksf.GenerateKeyPair(time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
+	require.NoError(t, err)
+	cert, err := mocksf.ParseCertPEM(certPEM)
+	require.NoError(t, err)
+
+	h, err := mocksf.NewHandler(mocksf.Config{
+		Company: testCompany, ClientID: testClient, APIKey: testAPIKey, Issuer: testIssuer, Subject: testSubject,
+		Cert: cert, Users: users, PageSize: 5, Log: &strings.Builder{},
+	})
+	require.NoError(t, err)
+
 	var mu sync.Mutex
 	var empJobURIs []string
-
-	var server *httptest.Server
-	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		switch r.URL.Path {
-		case "/oauth/token":
-			// SuccessFactors rejects a SAML assertion in the URL, so it must be in the form body.
-			assert.Empty(t, r.URL.RawQuery)
-			assert.NoError(t, r.ParseForm())
-			assert.NotEmpty(t, r.PostForm.Get("assertion"))
-			assert.Equal(t, "company", r.PostForm.Get("company_id"))
-			assert.Equal(t, "cid", r.PostForm.Get("client_id"))
-			assert.Equal(t, "urn:ietf:params:oauth:grant-type:saml2-bearer", r.PostForm.Get("grant_type"))
-			_, _ = w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer","expires_in":3600}`))
-		case "/odata/v2/EmpJob":
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == mocksf.EmpJobPath {
 			mu.Lock()
 			empJobURIs = append(empJobURIs, r.URL.RequestURI())
 			mu.Unlock()
-			body := client.SuccessFactorsUserIdList{Ds: client.D{
-				Results: []client.Results{{UserId: "u1", UserNav: client.UserNav{Username: "user1", Email: "user1@example.com"}}},
-				Next:    server.URL + "/odata/v2/EmpJob?$skiptoken=next-page",
-			}}
-			assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
-			assert.NoError(t, json.NewEncoder(w).Encode(map[string]any{"d": body.Ds}))
-		default:
-			http.NotFound(w, r)
 		}
+		h.ServeHTTP(w, r)
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 
-	ctx := context.Background()
-	cert, key := testKeyPair(t)
-	c, err := client.New(ctx, server.URL, "company", "cid", cert, key, "https://issuer.example", "subject", "api-key")
+	c, err := client.New(context.Background(), server.URL, testCompany, testClient, string(certPEM), string(keyPEM), testIssuer, testSubject, testAPIKey)
 	require.NoError(t, err)
+	return c, server, func() []string {
+		mu.Lock()
+		defer mu.Unlock()
+		return append([]string(nil), empJobURIs...)
+	}
+}
 
+type expectedUsers struct {
+	Count int `json:"count"`
+	Users map[string]struct {
+		Status  string            `json:"status"`
+		Profile map[string]string `json:"profile"`
+	} `json:"users"`
+}
+
+// listAll follows the page tokens like the syncer does.
+func listAll(t *testing.T, builder *userBuilder) ([]*v2.Resource, []int) {
+	t.Helper()
+	var all []*v2.Resource
+	var sizes []int
+	token := ""
+	for i := 0; i < 20; i++ {
+		resources, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
+		require.NoError(t, err)
+		all = append(all, resources...)
+		sizes = append(sizes, len(resources))
+		token = results.NextPageToken
+		if token == "" {
+			return all, sizes
+		}
+	}
+	t.Fatal("the page tokens did not end")
+	return nil, nil
+}
+
+func TestUserBuilderListPagination(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, server, requests := newMockClient(t, users)
 	builder := newUserBuilder(c)
 
 	// First page: empty token, the connector builds the initial query.
-	resources, results, err := builder.List(ctx, nil, resource.SyncOpAttrs{})
+	resources, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
 	require.NoError(t, err)
-	require.Len(t, resources, 1)
-	assert.Equal(t, "user1", resources[0].GetDisplayName())
-	assert.Equal(t, server.URL+"/odata/v2/EmpJob?$skiptoken=next-page", results.NextPageToken)
+	require.Len(t, resources, 5)
+	assert.True(t, strings.HasPrefix(results.NextPageToken, server.URL+mocksf.EmpJobPath+"?%24skiptoken="), results.NextPageToken)
 
 	// Next page: the token from the previous page reaches the client as the request URL.
-	_, _, err = builder.List(ctx, nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
+	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
 	require.NoError(t, err)
 
-	mu.Lock()
-	defer mu.Unlock()
-	require.Len(t, empJobURIs, 2)
-	assert.Contains(t, empJobURIs[0], "%24expand=")
-	assert.Equal(t, "/odata/v2/EmpJob?$skiptoken=next-page", empJobURIs[1])
+	uris := requests()
+	require.Len(t, uris, 2)
+	assert.Contains(t, uris[0], "%24expand=")
+	assert.Equal(t, strings.TrimPrefix(results.NextPageToken, server.URL), uris[1])
+}
+
+func TestUserBuilderListAllPages(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users)
+
+	all, sizes := listAll(t, newUserBuilder(c))
+	assert.Equal(t, []int{5, 5, 2}, sizes, "the last page has no next token")
+	assert.Len(t, all, len(users))
+}
+
+func TestUserBuilderMapsFixtureUsers(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users)
+	all, _ := listAll(t, newUserBuilder(c))
+
+	var exp expectedUsers
+	require.NoError(t, json.Unmarshal(mocksf.ExpectedJSON, &exp))
+	require.Len(t, all, exp.Count)
+
+	wantStatus := map[string]v2.Status_ResourceStatus{"enabled": v2.Status_RESOURCE_STATUS_ENABLED, "disabled": v2.Status_RESOURCE_STATUS_DISABLED}
+	seen := map[string]bool{}
+	for _, r := range all {
+		name := r.GetDisplayName()
+		seen[name] = true
+		want, ok := exp.Users[name]
+		require.True(t, ok, "unexpected user %q", name)
+		assert.Equal(t, wantStatus[want.Status], r.GetStatus().GetStatus(), "status of %s", name)
+		profile := r.GetProfile().AsMap()
+		for k, v := range want.Profile {
+			assert.Equal(t, v, profile[k], "profile %s of %s", k, name)
+		}
+	}
+	assert.Len(t, seen, exp.Count)
+}
+
+func TestUserBuilderBadDateFails(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	users, err = mocksf.ApplyScenario(users, mocksf.ScenarioBadDate)
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users)
+	builder := newUserBuilder(c)
+
+	var lastErr error
+	token := ""
+	for i := 0; i < 10 && lastErr == nil; i++ {
+		_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
+		lastErr = err
+		if err == nil {
+			if results.NextPageToken == "" {
+				break
+			}
+			token = results.NextPageToken
+		}
+	}
+	require.Error(t, lastErr)
+	assert.Contains(t, lastErr.Error(), "failed to build user resource")
 }

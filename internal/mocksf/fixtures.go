@@ -67,7 +67,7 @@ func ApplyScenario(users []json.RawMessage, name string) ([]json.RawMessage, err
 
 // GenerateKeyPair makes a self-signed RSA cert and key in PEM form. Use dates
 // in the past to get an expired cert.
-func GenerateKeyPair(notBefore, notAfter time.Time) (certPEM, keyPEM []byte, err error) {
+func GenerateKeyPair(notBefore, notAfter time.Time) ([]byte, []byte, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, nil, err
@@ -82,8 +82,8 @@ func GenerateKeyPair(notBefore, notAfter time.Time) (certPEM, keyPEM []byte, err
 	if err != nil {
 		return nil, nil, err
 	}
-	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 	return certPEM, keyPEM, nil
 }
 
