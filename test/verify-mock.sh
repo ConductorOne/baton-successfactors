@@ -35,13 +35,15 @@ gen_cert "$WORKDIR"
 gen_cert "$WORKDIR/other"
 
 pids=()
-cleanup() { [ ${#pids[@]} -gt 0 ] && kill "${pids[@]}" 2>/dev/null || true; }
-fail_dump() {
-  echo "--- mock log ---" >&2
-  cat "$WORKDIR"/mock*.log >&2 2>/dev/null || true
+cleanup() {
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "--- mock log ---" >&2
+    cat "$WORKDIR"/mock*.log >&2 2>/dev/null || true
+  fi
+  if [ ${#pids[@]} -gt 0 ]; then kill "${pids[@]}" 2>/dev/null || true; fi
 }
 trap cleanup EXIT
-trap 'fail_dump' ERR
 
 start_mock() { # port log [extra flags...]
   local port="$1" log="$2"
