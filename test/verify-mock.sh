@@ -49,8 +49,15 @@ start_mock() { # port log [extra flags...]
   local port="$1" log="$2"
   shift 2
   "$MOCK" -addr "127.0.0.1:${port}" -cert "$WORKDIR/cert.pem" "$@" >"$log" 2>&1 &
-  pids+=($!)
+  local pid=$!
+  pids+=("$pid")
   for _ in $(seq 1 50); do
+    # If the port is already in use, our mock exits and the old server would answer.
+    if ! kill -0 "$pid" 2>/dev/null; then
+      echo "mock exited on port ${port} (is the port in use? see $log)" >&2
+      cat "$log" >&2
+      return 1
+    fi
     curl -fs "http://127.0.0.1:${port}/healthz" >/dev/null 2>&1 && return 0
     sleep 0.2
   done

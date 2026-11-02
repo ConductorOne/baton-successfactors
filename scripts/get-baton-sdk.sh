@@ -21,7 +21,8 @@ checksums="baton_${version#v}_checksums.txt"
 
 curl -fsSLO "${base}/${archive}"
 curl -fsSLO "${base}/${checksums}"
-grep " ${archive}\$" "${checksums}" | sha256sum -c -
+if command -v sha256sum >/dev/null; then sum=(sha256sum -c -); else sum=(shasum -a 256 -c -); fi
+grep " ${archive}\$" "${checksums}" | "${sum[@]}"
 tar xzf "${archive}" baton
 rm -f "${archive}" "${checksums}"
 ./baton --version
