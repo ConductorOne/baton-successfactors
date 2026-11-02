@@ -144,30 +144,56 @@ func TestCompanyBodyMatchesRealFormat(t *testing.T) {
 	assert.JSONEq(t, `{"errorHttpCode":"401","errorMessage":"Company other does not exist in this data center. Please verify the company id and the endpoint URL you are using."}`, body)
 }
 
-func TestWrongSubjectIssuerKeyAndClient(t *testing.T) {
+// assertionRejected sends the client's assertion as the real client does and returns the mock's reply.
+func assertionRejected(t *testing.T, e *env, c *client.SuccessFactorsClient, clientID string) string {
+	t.Helper()
+	status, body := post(t, e.srv.URL+TokenPath, url.Values{
+		"company_id": {"co"}, "client_id": {clientID},
+		"grant_type": {"urn:ietf:params:oauth:grant-type:saml2-bearer"}, "assertion": {c.SAMLAssertion},
+	})
+	assert.Equal(t, http.StatusUnauthorized, status)
+	return body
+}
+
+func TestRejectedAssertionsGiveTheReason(t *testing.T) {
 	e := validEnv(t, nil)
-	_, _, err := e.client(t, "co", "wrong-subject").GetUserData(context.Background(), "")
-	require.Error(t, err)
+	ctx := context.Background()
+	mk := func(issuer, subject, apiKey, certPEM, keyPEM string) *client.SuccessFactorsClient {
+		c, err := client.New(ctx, e.srv.URL, "co", "cid", certPEM, keyPEM, issuer, subject, apiKey)
+		require.NoError(t, err)
+		return c
+	}
+
+	// The control case: the same inputs pass.
+	good := mk("https://issuer.example", "100001", "key", e.certPEM, e.keyPEM)
+	status, _ := post(t, e.srv.URL+TokenPath, url.Values{
+		"company_id": {"co"}, "client_id": {"cid"},
+		"grant_type": {"urn:ietf:params:oauth:grant-type:saml2-bearer"}, "assertion": {good.SAMLAssertion},
+	})
+	require.Equal(t, http.StatusOK, status)
+
+	assert.Contains(t, assertionRejected(t, e, mk("https://other.example", "100001", "key", e.certPEM, e.keyPEM), "cid"), "issuer does not match")
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "wrong", "key", e.certPEM, e.keyPEM), "cid"), "subject does not match")
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "100001", "wrong", e.certPEM, e.keyPEM), "cid"), "api_key does not match")
+	assert.Contains(t, assertionRejected(t, e, good, "wrong-client"), "unknown client_id")
 
 	// A different cert than the mock trusts gives a signature failure.
 	other, otherKey, err := GenerateKeyPair(time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
 	require.NoError(t, err)
-	c, err := client.New(context.Background(), e.srv.URL, "co", "cid", string(other), string(otherKey), "https://issuer.example", "100001", "key")
-	require.NoError(t, err)
-	_, _, err = c.GetUserData(context.Background(), "")
-	require.Error(t, err)
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "100001", "key", string(other), string(otherKey)), "cid"), "signature check failed")
 
-	c, err = client.New(context.Background(), e.srv.URL, "co", "wrong-client", e.certPEM, e.keyPEM, "https://issuer.example", "100001", "key")
+	// A wrong recipient: the mock is reached under another public URL.
+	e2 := validEnv(t, func(c *Config) { c.PublicURL = "http://elsewhere.example" })
+	c2, err := client.New(ctx, e2.srv.URL, "co", "cid", e2.certPEM, e2.keyPEM, "https://issuer.example", "100001", "key")
 	require.NoError(t, err)
-	_, _, err = c.GetUserData(context.Background(), "")
-	require.Error(t, err)
+	assert.Contains(t, assertionRejected(t, e2, c2, "cid"), "recipient does not match")
 }
 
 func TestExpiredAssertionRejected(t *testing.T) {
 	// The assertion window starts now. A mock clock far in the future is outside it.
 	e := validEnv(t, func(c *Config) { c.Now = func() time.Time { return time.Now().Add(48 * time.Hour) } })
-	_, _, err := e.client(t, "co", "100001").GetUserData(context.Background(), "")
-	require.Error(t, err)
+	c := e.client(t, "co", "100001")
+	assert.Contains(t, assertionRejected(t, e, c, "cid"), "outside its time window")
 }
 
 func TestExpiredCertToggle(t *testing.T) {

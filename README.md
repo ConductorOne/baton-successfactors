@@ -58,6 +58,18 @@ baton-successfactors --public-key ./sf-cert.pem --private-key ./sf-key.pem
 baton resources
 ```
 
+# Testing with the mock server
+
+You can run the connector against a mock SuccessFactors server, with no tenant and no secrets:
+
+```
+make mock                           # terminal 1: start the mock, print the BATON_* exports
+go run ./cmd/baton-successfactors   # terminal 2, after you paste the exports
+baton resources
+```
+
+See [docs/mock-server.md](docs/mock-server.md) for the details, the test scenarios, and how to run it against a C1 dev instance.
+
 # Data Model
 
 `baton-successfactors` will pull down information about the following resources:
