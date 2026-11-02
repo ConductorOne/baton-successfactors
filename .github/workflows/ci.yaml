@@ -46,6 +46,8 @@ jobs:
           case "$SF_SUBJECT_NAME_ID" in ''|*[!0-9]*) echo "DEBUG subject name id all digits: no";; *) echo "DEBUG subject name id all digits: yes";; esac
           echo "DEBUG issuer host: $(printf '%s' "$SF_ISSUER_URL" | sed -E 's#^[a-zA-Z]+://([^/]*).*#\1#')"
       - name: Run baton-successfactors
+        env:
+          BATON_SUBJECT_NAME_ID: "101050"
         run: ./baton-successfactors
       - name: Install baton
         run: ./scripts/get-baton.sh && mv baton /usr/local/bin
