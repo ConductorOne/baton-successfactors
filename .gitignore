@@ -15,3 +15,6 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 dist/
+
+# Throwaway cert, key and run output of the mock server (see docs/mock-server.md)
+.mock/
