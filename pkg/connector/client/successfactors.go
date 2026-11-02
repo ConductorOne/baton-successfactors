@@ -5,9 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/beevik/etree"
@@ -208,13 +212,25 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	values.Add("client_id", c.clientID)
 	values.Add("grant_type", tokenGrantType)
 	values.Add("assertion", c.SAMLAssertion)
-	reqOpts := []uhttp.RequestOption{
-		uhttp.WithContentTypeFormHeader(),
-		uhttp.WithBody([]byte(values.Encode())),
-	}
+	// DEBUG ONLY, do not merge: one raw request. Print the status and body only.
 	u := c.baseURL.JoinPath(c.baseURL.RawPath, tokenPath)
-	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), strings.NewReader(values.Encode()))
 	if err != nil {
+		return "", fmt.Errorf("failed to get bearer: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG token request error: %v\n", err)
+		return "", fmt.Errorf("failed to get bearer: %w", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		fmt.Fprintf(os.Stderr, "DEBUG token status=%d body=%s\n", resp.StatusCode, body)
+		return "", fmt.Errorf("failed to get bearer: status %d", resp.StatusCode)
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
 		return "", fmt.Errorf("failed to get bearer: %w", err)
 	}
 	return response.AccessToken, nil
