@@ -23,6 +23,9 @@ EXPECTED="$root/internal/mocksf/testdata/expected.json"
 command -v openssl >/dev/null || { echo "openssl is required" >&2; exit 1; }
 command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
 command -v curl >/dev/null || { echo "curl is required" >&2; exit 1; }
+# Guard each sync: the baton-sdk syncer retries a 5xx or 429 without limit.
+# macOS has no timeout by default, so the guard is optional.
+if command -v timeout >/dev/null; then guard=(timeout 120); else guard=(); fi
 command -v "$BATON" >/dev/null || { echo "baton CLI not found (set BATON)" >&2; exit 1; }
 
 # A throwaway cert and key. The mock trusts this cert.
@@ -75,7 +78,7 @@ run_connector() {
   shift
   rm -rf "$dir"
   mkdir -p "$dir"
-  (cd "$dir" && env "$@" BATON_LOG_LEVEL=info "$BATON_SUCCESSFACTORS") >"$dir/out.log" 2>&1
+  (cd "$dir" && env "$@" BATON_LOG_LEVEL=info ${guard[@]+"${guard[@]}"} "$BATON_SUCCESSFACTORS") >"$dir/out.log" 2>&1
 }
 
 # expect_fail <name> <pattern> <dir> [VAR=value ...]: the sync must fail and the output must match.
@@ -98,7 +101,7 @@ echo "== positive: sync, verify-resources.sh, expected.json"
 pos="$WORKDIR/run-positive"
 rm -rf "$pos"
 mkdir -p "$pos"
-(cd "$pos" && BATON="$BATON" BATON_PRINCIPAL=rsmith "$root/test/verify-resources.sh") >"$pos/out.log" 2>&1 \
+(cd "$pos" && BATON="$BATON" BATON_PRINCIPAL=rsmith ${guard[@]+"${guard[@]}"} "$root/test/verify-resources.sh") >"$pos/out.log" 2>&1 \
   || { tail -n 20 "$pos/out.log" >&2; echo "FAIL: verify-resources.sh" >&2; exit 1; }
 echo "ok: verify-resources.sh"
 
