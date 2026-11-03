@@ -10,6 +10,8 @@ import (
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type userBuilder struct {
@@ -101,6 +103,16 @@ func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resource.SyncOpAttrs) ([]*v2.Resource, *resource.SyncOpResults, error) {
 	users, paginationURL, err := o.client.GetUserData(ctx, opts.PageToken.Token)
 	if err != nil {
+		// A 404 from the user list must fail the sync. The SDK treats NotFound as a
+		// warning and would end the sync with a partial list, so C1 would delete the
+		// missing users. FailedPrecondition is not retried (Unavailable is, without
+		// limit). The error is formatted with %v on purpose: %w would let status.Code
+		// find the inner NotFound again. The page token is a URL, so only log whether it is set.
+		if status.Code(err) == codes.NotFound {
+			return nil, nil, status.Errorf(codes.FailedPrecondition,
+				"baton-successfactors: user list returned not found (page token set: %t): %v",
+				opts.PageToken.Token != "", err)
+		}
 		return nil, nil, fmt.Errorf("baton-successfactors: failed to list users: %w", err)
 	}
 	rv := make([]*v2.Resource, 0)

@@ -135,13 +135,14 @@ Each example starts the mock with one change. The connector uses the exports fro
 | Wrong company ID | Run the connector with `BATON_COMPANY_ID=OTHER` | 401, "Company OTHER does not exist in this data center" in the mock reply |
 | Old request style (assertion in the URL) | `curl -s -X POST "http://127.0.0.1:8089/oauth/token?assertion=x"` | 400, "SAML assertion is not allowed in URL parameter." |
 | Bad date | `go run ./test/mock-successfactors -cert .mock/cert.pem -scenario bad-date` | The sync fails with "failed to build user resource" |
+| 404 on a page | `go run ./test/mock-successfactors -cert .mock/cert.pem -fail-page 2 -fail-status 404` | The sync fails with "user list returned not found"; C1 keeps the previous data |
 | Error on page 2 | `go run ./test/mock-successfactors -cert .mock/cert.pem -fail-page 2 -fail-status 400` | The sync fails on the second page |
 | Custom data | `go run ./test/mock-successfactors -cert .mock/cert.pem -fixtures ./my-users.json` | The sync returns your users |
 | No users | `go run ./test/mock-successfactors -cert .mock/cert.pem -scenario empty` | The sync passes with 0 users |
 
 Other flags: `-page-size` (default 5), `-addr`, `-public-url`.
 
-Choose the status for `-fail-status` with care. The connector client retries a 5xx status, such as 500, for many minutes, so the sync seems to hang (a run did not end in 7 minutes). A 404 on a later page gives no error: the sync ends with only the users from the earlier pages. Use 400 to get a quick, clear failure.
+Choose the status for `-fail-status` with care. The connector client retries a 5xx status, such as 500, for many minutes, so the sync seems to hang (a run did not end in 7 minutes). A 404 on any page fails the sync with "user list returned not found", so C1 keeps the previous data. Use 400 or 404 to get a quick, clear failure.
 
 For the record, the baton-sdk syncer retries a 5xx status and 429 without a limit (waits of 1s, 2s, 3s, and so on, capped at 60s) and logs "retrying operation". Use `-fail-status 503` to see those logs, and stop the connector with Ctrl-C. Do not use a 5xx status in an automated check.
 
