@@ -143,7 +143,7 @@ echo "ok: assertion in the URL gets 400"
 
 # 2. A wrong company ID makes the mock answer 401, and the sync fails.
 before="$(grep -c 'POST /oauth/token -> 401' "$WORKDIR/mock.log" || true)"
-expect_fail "wrong company" "401" "$WORKDIR/run-company" BATON_COMPANY_ID=WRONGCO
+expect_fail "wrong company" "does not exist in this data center" "$WORKDIR/run-company" BATON_COMPANY_ID=WRONGCO
 after="$(grep -c 'POST /oauth/token -> 401' "$WORKDIR/mock.log" || true)"
 [ "$after" -gt "$before" ] || { echo "FAIL: wrong company: the mock did not answer 401" >&2; exit 1; }
 

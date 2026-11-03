@@ -1,5 +1,7 @@
 package client
 
+import "encoding/json"
+
 type Bearer struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -115,4 +117,34 @@ type D struct {
 }
 type SuccessFactorsUserIdList struct {
 	Ds D `json:"d"`
+}
+
+// ErrorResponse is a SuccessFactors error body. The OAuth token endpoint uses
+// {"errorHttpCode":"400","errorMessage":"..."}; OData endpoints use
+// {"error":{"code":"...","message":{"lang":"en-US","value":"..."}}}.
+type ErrorResponse struct {
+	// ErrorHTTPCode is a string in the token error body. It is a raw value, so a number does not fail decoding.
+	ErrorHTTPCode json.RawMessage `json:"errorHttpCode"`
+	ErrorMessage  string          `json:"errorMessage"`
+	Error         *struct {
+		Code    string `json:"code"`
+		Message struct {
+			Lang  string `json:"lang"`
+			Value string `json:"value"`
+		} `json:"message"`
+	} `json:"error"`
+}
+
+// Message returns the error text of either shape, or "" if the body has none.
+func (e *ErrorResponse) Message() string {
+	if e.ErrorMessage != "" {
+		return e.ErrorMessage
+	}
+	if e.Error != nil && e.Error.Message.Value != "" {
+		if e.Error.Code != "" {
+			return e.Error.Code + ": " + e.Error.Message.Value
+		}
+		return e.Error.Message.Value
+	}
+	return ""
 }

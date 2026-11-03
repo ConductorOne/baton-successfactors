@@ -18,6 +18,8 @@ The mock is not a replacement for a test against a real tenant:
 - The mock does not parse the full OData grammar. It checks only that the first page asks for `$format=json`, `$select`, and `$expand` with `userNav` and `employmentNav`.
 - By default the mock accepts a signature made with an expired certificate, because the real behavior is unknown. Use `-reject-expired-cert` to test the other case.
 
+Connector errors include the error message that SuccessFactors sends (the token endpoint and the OData endpoint use two different JSON shapes, and the mock uses both).
+
 Code: `internal/mocksf` (handler and fixtures), `test/mock-successfactors` (command), `test/verify-mock.sh` (the check that CI runs).
 
 ## 2. Prerequisites
@@ -132,7 +134,7 @@ Each example starts the mock with one change. The connector uses the exports fro
 |---|---|---|
 | Expired certificate, accepted (default) | `openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=mock -keyout .mock/key.pem -out .mock/cert.pem -not_after 20200101000000Z`, then `go run ./test/mock-successfactors -cert .mock/cert.pem` | The sync passes |
 | Expired certificate, rejected | The same certificate, with `-reject-expired-cert` added | The sync fails with 401 |
-| Wrong company ID | Run the connector with `BATON_COMPANY_ID=OTHER` | 401, "Company OTHER does not exist in this data center" in the mock reply |
+| Wrong company ID | Run the connector with `BATON_COMPANY_ID=OTHER` | The sync fails with 401, and the connector error shows "Company OTHER does not exist in this data center" |
 | Old request style (assertion in the URL) | `curl -s -X POST "http://127.0.0.1:8089/oauth/token?assertion=x"` | 400, "SAML assertion is not allowed in URL parameter." |
 | Bad date | `go run ./test/mock-successfactors -cert .mock/cert.pem -scenario bad-date` | The sync fails with "failed to build user resource" |
 | 404 on a page | `go run ./test/mock-successfactors -cert .mock/cert.pem -fail-page 2 -fail-status 404` | The sync fails with "user list returned not found"; C1 keeps the previous data |

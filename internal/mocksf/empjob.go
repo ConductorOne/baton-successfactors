@@ -16,7 +16,7 @@ type skipToken struct {
 func (s *server) handleEmpJob(w http.ResponseWriter, r *http.Request) {
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") || !s.validToken(strings.TrimPrefix(auth, "Bearer ")) {
-		writeError(w, http.StatusUnauthorized, "Synthetic: a valid bearer token is required.")
+		writeODataError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Synthetic: a valid bearer token is required.")
 		return
 	}
 
@@ -26,20 +26,20 @@ func (s *server) handleEmpJob(w http.ResponseWriter, r *http.Request) {
 		b, err := base64.StdEncoding.DecodeString(raw)
 		var tok skipToken
 		if err != nil || json.Unmarshal(b, &tok) != nil || tok.StartRow < 0 {
-			writeError(w, http.StatusBadRequest, "Synthetic: invalid $skiptoken.")
+			writeODataError(w, http.StatusBadRequest, "BAD_REQUEST", "Synthetic: invalid $skiptoken.")
 			return
 		}
 		start = tok.StartRow
 	} else if q.Get("$format") != "json" || !strings.Contains(q.Get("$select"), "userId") ||
 		!strings.Contains(q.Get("$expand"), "userNav") || !strings.Contains(q.Get("$expand"), "employmentNav") {
 		// The first page carries the query that the connector builds.
-		writeError(w, http.StatusBadRequest, "Synthetic: $format=json, $select and $expand (userNav, employmentNav) are required.")
+		writeODataError(w, http.StatusBadRequest, "BAD_REQUEST", "Synthetic: $format=json, $select and $expand (userNav, employmentNav) are required.")
 		return
 	}
 
 	page := start/s.cfg.PageSize + 1
 	if s.cfg.FailPage == page && s.cfg.FailStatus != 0 {
-		writeError(w, s.cfg.FailStatus, "Synthetic: injected failure.")
+		writeODataError(w, s.cfg.FailStatus, "INJECTED_FAILURE", "Synthetic: injected failure.")
 		return
 	}
 
