@@ -316,3 +316,73 @@ func TestUserBuilderListNotFoundErrorHasNoPageToken(t *testing.T) {
 	assert.NotContains(t, err.Error(), url.QueryEscape(skip))
 	assert.Contains(t, err.Error(), "page token set: true")
 }
+
+func TestUserBuilderListShowsSuccessFactorsMessages(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+
+	t.Run("wrong company shows the token error message", func(t *testing.T) {
+		// The mock knows another company than the client sends.
+		c, _, _ := newMockClient(t, users, func(cfg *mocksf.Config) { cfg.Company = "OTHERCO" })
+		_, _, err := newUserBuilder(c).List(context.Background(), nil, resource.SyncOpAttrs{})
+		require.Error(t, err)
+		assert.Equal(t, codes.Unauthenticated, status.Code(err))
+		assert.Contains(t, err.Error(), "Company "+testCompany+" does not exist in this data center")
+	})
+
+	t.Run("400 on page 2 shows the OData message", func(t *testing.T) {
+		c, _, _ := newMockClient(t, users, failPage(2, http.StatusBadRequest))
+		builder := newUserBuilder(c)
+		_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+		require.NoError(t, err)
+		_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
+		require.Error(t, err)
+		assert.Equal(t, codes.InvalidArgument, status.Code(err))
+		assert.Contains(t, err.Error(), "INJECTED_FAILURE: Synthetic: injected failure.")
+	})
+
+	t.Run("503 is still Unavailable", func(t *testing.T) {
+		c, _, _ := newMockClient(t, users, failPage(2, http.StatusServiceUnavailable))
+		builder := newUserBuilder(c)
+		_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+		require.NoError(t, err)
+		_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
+		require.Error(t, err)
+		assert.Equal(t, codes.Unavailable, status.Code(err), "the syncer retries Unavailable, as before")
+	})
+
+	t.Run("400 that echoes the page URL has no page token in the error", func(t *testing.T) {
+		var server *httptest.Server
+		echo400 := func(w http.ResponseWriter, r *http.Request) bool {
+			if r.URL.Path != mocksf.EmpJobPath || r.URL.Query().Get("$skiptoken") == "" {
+				return false
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]any{
+				"code":    "BAD_REQUEST",
+				"message": map[string]string{"lang": "en-US", "value": "Invalid page " + server.URL + r.URL.RequestURI()},
+			}})
+			return true
+		}
+		c, srv, _ := newInterceptedMockClient(t, users, echo400)
+		server = srv
+		builder := newUserBuilder(c)
+
+		_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+		require.NoError(t, err)
+		token := results.NextPageToken
+		u, err := url.Parse(token)
+		require.NoError(t, err)
+		skip := u.Query().Get("$skiptoken")
+		require.NotEmpty(t, skip)
+
+		_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
+		require.Error(t, err)
+		assert.Equal(t, codes.InvalidArgument, status.Code(err))
+		assert.Contains(t, err.Error(), "Invalid page", "the SAP message is shown")
+		assert.NotContains(t, err.Error(), token)
+		assert.NotContains(t, err.Error(), skip)
+		assert.NotContains(t, err.Error(), url.QueryEscape(skip))
+	})
+}
