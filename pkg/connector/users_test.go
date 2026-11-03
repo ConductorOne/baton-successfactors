@@ -3,6 +3,8 @@ package connector
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -437,4 +439,43 @@ func TestUserBuilderListKeepsRateLimitDetails(t *testing.T) {
 	assert.NotContains(t, err.Error(), token)
 	assert.NotContains(t, err.Error(), skip)
 	assert.NotContains(t, err.Error(), url.QueryEscape(skip))
+}
+
+func TestListError(t *testing.T) {
+	token := "http://127.0.0.1:8089/odata/v2/EmpJob?" + url.Values{"$skiptoken": {"eyJzdGFydFJvdyI6NX0="}}.Encode()
+
+	rl, err := status.New(codes.Unavailable, "429 Too Many Requests").WithDetails(
+		v2.RateLimitDescription_builder{Status: v2.RateLimitDescription_STATUS_OVERLIMIT}.Build())
+	require.NoError(t, err)
+
+	tests := []struct {
+		name string
+		err  error
+		want codes.Code
+	}{
+		{"deadline exceeded", fmt.Errorf("get %s: %w", token, context.DeadlineExceeded), codes.DeadlineExceeded},
+		{"canceled", fmt.Errorf("get %s: %w", token, context.Canceled), codes.Canceled},
+		{"plain error", errors.New("parse " + token + ": bad"), codes.Unknown},
+		{"status error with details", fmt.Errorf("%s: %w", token, rl.Err()), codes.Unavailable},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := listError(tt.err, token)
+			require.Error(t, got)
+			assert.Equal(t, tt.want, status.Code(got))
+			assert.NotContains(t, got.Error(), token)
+			assert.NotContains(t, got.Error(), "eyJzdGFydFJvdyI6NX0")
+			assert.Contains(t, got.Error(), "baton-successfactors: failed to list users")
+		})
+	}
+
+	t.Run("rate limit details are kept", func(t *testing.T) {
+		got := listError(rl.Err(), token)
+		var found bool
+		for _, d := range status.Convert(got).Details() {
+			_, ok := d.(*v2.RateLimitDescription)
+			found = found || ok
+		}
+		assert.True(t, found)
+	})
 }
