@@ -116,6 +116,25 @@ func redactPageToken(msg, token string) string {
 	return msg
 }
 
+// listError turns an error from the user list into a status error for the SDK.
+//   - The gRPC code and the details are kept (the rate limit data that the SDK retry reads).
+//     status.Errorf would drop the details.
+//   - An error without a gRPC status is mapped as the gRPC server does: a wrapped context
+//     error gives DeadlineExceeded or Canceled, anything else gives Unknown. Without this,
+//     a context error would become Unknown, which the syncer does not retry.
+//   - The page token is removed from the text. The text can include a SuccessFactors error body
+//     that echoes the request URL, and a url.Parse error contains the whole token.
+//     %w is not used: it would keep the original text.
+func listError(err error, pageToken string) error {
+	st, ok := status.FromError(err)
+	if !ok {
+		st = status.FromContextError(err)
+	}
+	p := st.Proto()
+	p.Message = "baton-successfactors: failed to list users: " + redactPageToken(p.Message, pageToken)
+	return status.ErrorProto(p)
+}
+
 func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 	return resourceTypeUser
 }
@@ -136,14 +155,7 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 				"baton-successfactors: user list returned not found (page token set: %t): %s",
 				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
 		}
-		// The error text can include a SuccessFactors error body that echoes the request URL.
-		// Keep the gRPC code and the details (the rate limit data that the SDK retry reads),
-		// and remove the page token from the text. %w is not used: it would keep the original
-		// text. status.Errorf is not used: it would drop the details.
-		st, _ := status.FromError(err)
-		p := st.Proto()
-		p.Message = "baton-successfactors: failed to list users: " + redactPageToken(p.Message, opts.PageToken.Token)
-		return nil, nil, status.ErrorProto(p)
+		return nil, nil, listError(err, opts.PageToken.Token)
 	}
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
