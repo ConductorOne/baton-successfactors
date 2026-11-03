@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -34,6 +35,18 @@ const (
 // It returns the request URIs that the mock gets on /odata/v2/EmpJob.
 func newMockClient(t *testing.T, users []json.RawMessage, mutate ...func(*mocksf.Config)) (*client.SuccessFactorsClient, *httptest.Server, func() []string) {
 	t.Helper()
+	return newInterceptedMockClient(t, users, nil, mutate...)
+}
+
+// newInterceptedMockClient is newMockClient with a hook that can answer a request before the mock does.
+// The hook returns true when it has answered.
+func newInterceptedMockClient(
+	t *testing.T,
+	users []json.RawMessage,
+	intercept func(http.ResponseWriter, *http.Request) bool,
+	mutate ...func(*mocksf.Config),
+) (*client.SuccessFactorsClient, *httptest.Server, func() []string) {
+	t.Helper()
 	certPEM, keyPEM, err := mocksf.GenerateKeyPair(time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
 	require.NoError(t, err)
 	cert, err := mocksf.ParseCertPEM(certPEM)
@@ -52,6 +65,9 @@ func newMockClient(t *testing.T, users []json.RawMessage, mutate ...func(*mocksf
 	var mu sync.Mutex
 	var empJobURIs []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if intercept != nil && intercept(w, r) {
+			return
+		}
 		if r.URL.Path == mocksf.EmpJobPath {
 			mu.Lock()
 			empJobURIs = append(empJobURIs, r.URL.RequestURI())
@@ -233,4 +249,70 @@ func TestUserBuilderListOtherErrorsUnchanged(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, codes.InvalidArgument, status.Code(err))
 	assert.Contains(t, err.Error(), "failed to list users")
+}
+
+func TestRedactPageToken(t *testing.T) {
+	skip := "eyJzdGFydFJvdyI6NSwiZW5kUm93IjoxMH0="
+	token := "http://127.0.0.1:8089/odata/v2/EmpJob?" + url.Values{"$skiptoken": {skip}}.Encode()
+
+	tests := []struct {
+		name  string
+		msg   string
+		token string
+		want  string
+	}{
+		{"empty token", "404 Not Found: " + token, "", "404 Not Found: " + token},
+		{"raw token", "404: " + token + " end", token, "404: <page-token> end"},
+		{"query-escaped token", "404: url=" + url.QueryEscape(token), token, "404: url=<page-token>"},
+		{"path-escaped token", "404: " + url.PathEscape(token), token, "404: <page-token>"},
+		{"skiptoken value alone", "bad skiptoken " + skip + " here", token, "bad skiptoken <redacted> here"},
+		{"escaped skiptoken value alone", "bad " + url.QueryEscape(skip), token, "bad <redacted>"},
+		{"no token in the message", "404 Not Found", token, "404 Not Found"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, redactPageToken(tt.msg, tt.token))
+		})
+	}
+}
+
+func TestUserBuilderListNotFoundErrorHasNoPageToken(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+
+	// The server answers a page request with a 404 that echoes the full request URL in its body.
+	// Today the client error does not carry the response body, so this test also passes without
+	// redactPageToken. It guards against the body or the URL reaching the error text later.
+	var server *httptest.Server
+	echo404 := func(w http.ResponseWriter, r *http.Request) bool {
+		if r.URL.Path != mocksf.EmpJobPath || r.URL.Query().Get("$skiptoken") == "" {
+			return false
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"errorHttpCode": "404",
+			"errorMessage":  "Page not found: " + server.URL + r.URL.RequestURI(),
+		})
+		return true
+	}
+	c, srv, _ := newInterceptedMockClient(t, users, echo404)
+	server = srv
+	builder := newUserBuilder(c)
+
+	_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+	require.NoError(t, err)
+	token := results.NextPageToken
+	require.NotEmpty(t, token)
+	u, err := url.Parse(token)
+	require.NoError(t, err)
+	skip := u.Query().Get("$skiptoken")
+	require.NotEmpty(t, skip)
+
+	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
+	requireFailedPrecondition(t, err)
+	assert.NotContains(t, err.Error(), token)
+	assert.NotContains(t, err.Error(), skip)
+	assert.NotContains(t, err.Error(), url.QueryEscape(skip))
+	assert.Contains(t, err.Error(), "page token set: true")
 }

@@ -3,8 +3,10 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
@@ -94,6 +96,26 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	return newUserResource, nil
 }
 
+// redactPageToken removes the page token from msg. The token is a full __next URL
+// with a $skiptoken query parameter. It replaces the raw and escaped forms of the
+// token, and the $skiptoken value on its own.
+func redactPageToken(msg, token string) string {
+	if token == "" {
+		return msg
+	}
+	for _, t := range []string{token, url.QueryEscape(token), url.PathEscape(token)} {
+		msg = strings.ReplaceAll(msg, t, "<page-token>")
+	}
+	if u, err := url.Parse(token); err == nil {
+		if v := u.Query().Get("$skiptoken"); v != "" {
+			for _, t := range []string{v, url.QueryEscape(v), url.PathEscape(v)} {
+				msg = strings.ReplaceAll(msg, t, "<redacted>")
+			}
+		}
+	}
+	return msg
+}
+
 func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 	return resourceTypeUser
 }
@@ -107,11 +129,12 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 		// warning and would end the sync with a partial list, so C1 would delete the
 		// missing users. FailedPrecondition is not retried (Unavailable is, without
 		// limit). The error is formatted with %v on purpose: %w would let status.Code
-		// find the inner NotFound again. The page token is a URL, so only log whether it is set.
+		// find the inner NotFound again. The inner text is kept for debugging, with the
+		// page token removed: it is a URL, and the server could echo it in the response body.
 		if status.Code(err) == codes.NotFound {
 			return nil, nil, status.Errorf(codes.FailedPrecondition,
-				"baton-successfactors: user list returned not found (page token set: %t): %v",
-				opts.PageToken.Token != "", err)
+				"baton-successfactors: user list returned not found (page token set: %t): %s",
+				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
 		}
 		return nil, nil, fmt.Errorf("baton-successfactors: failed to list users: %w", err)
 	}
