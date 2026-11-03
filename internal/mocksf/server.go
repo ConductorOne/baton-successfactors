@@ -134,6 +134,18 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	})
 }
 
+// writeODataError writes an OData-shaped error body, as the EmpJob endpoint does.
+func writeODataError(w http.ResponseWriter, status int, code, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"error": map[string]any{
+			"code":    code,
+			"message": map[string]string{"lang": "en-US", "value": msg},
+		},
+	})
+}
+
 type statusWriter struct {
 	http.ResponseWriter
 	status int

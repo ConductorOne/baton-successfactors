@@ -93,7 +93,9 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *
 	if err != nil {
 		return err
 	}
-	doOpts := []uhttp.DoOption{}
+	// Show the SuccessFactors error text in the error, not only the status.
+	var errResp ErrorResponse
+	doOpts := []uhttp.DoOption{uhttp.WithErrorResponse(&errResp)}
 	if response != nil {
 		doOpts = append(doOpts, uhttp.WithJSONResponse(response))
 	}

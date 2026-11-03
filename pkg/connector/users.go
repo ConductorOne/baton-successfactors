@@ -136,7 +136,11 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 				"baton-successfactors: user list returned not found (page token set: %t): %s",
 				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
 		}
-		return nil, nil, fmt.Errorf("baton-successfactors: failed to list users: %w", err)
+		// The error text can include a SuccessFactors error body that echoes the request URL.
+		// Keep the gRPC code, so that retries and warnings behave as before, and remove the
+		// page token from the text. %w is not used: it would keep the original text.
+		return nil, nil, status.Errorf(status.Code(err), "baton-successfactors: failed to list users: %s",
+			redactPageToken(err.Error(), opts.PageToken.Token))
 	}
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
