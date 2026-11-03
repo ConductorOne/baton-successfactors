@@ -209,8 +209,7 @@ func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	values.Add("grant_type", tokenGrantType)
 	values.Add("assertion", c.SAMLAssertion)
 	reqOpts := []uhttp.RequestOption{
-		uhttp.WithContentTypeFormHeader(),
-		uhttp.WithBody([]byte(values.Encode())),
+		uhttp.WithFormBody(values.Encode()),
 	}
 	u := c.baseURL.JoinPath(c.baseURL.RawPath, tokenPath)
 	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
