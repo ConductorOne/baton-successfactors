@@ -3,7 +3,6 @@
 1. What resources does the connector sync?
    This connector syncs:
     - Users
-    - Groups
 
 2. Can the connector provision any resources? If so, which ones?
    No.

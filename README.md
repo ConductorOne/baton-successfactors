@@ -74,7 +74,6 @@ See [docs/mock-server.md](docs/mock-server.md) for the details, the test scenari
 
 `baton-successfactors` will pull down information about the following resources:
 - Users
-- Groups
 
 # Contributing, Support and Issues
 
