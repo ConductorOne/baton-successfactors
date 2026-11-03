@@ -17,6 +17,8 @@ mkdir -p "$WORKDIR"
 WORKDIR="$(cd "$WORKDIR" && pwd)"
 PORT=8089
 BAD_PORT=8090
+NOTFOUND_PORT=8091
+NOTFOUND_FIRST_PORT=8092
 URL="http://127.0.0.1:${PORT}"
 EXPECTED="$root/internal/mocksf/testdata/expected.json"
 
@@ -160,5 +162,14 @@ expect_fail "PEM contents instead of a path" "cannot access file" "$WORKDIR/run-
 start_mock "$BAD_PORT" "$WORKDIR/mock-bad-date.log" -scenario bad-date
 expect_fail "bad date" "failed to build user resource" "$WORKDIR/run-bad-date" \
   "BATON_INSTANCE_URL=http://127.0.0.1:${BAD_PORT}"
+
+# 6. A 404 from the user list must fail the sync, on a later page and on the first page.
+# Without this, the SDK treats NotFound as a warning and the sync ends with a partial list.
+start_mock "$NOTFOUND_PORT" "$WORKDIR/mock-404-page2.log" -fail-page 2 -fail-status 404
+expect_fail "404 on page 2" "user list returned not found" "$WORKDIR/run-404-page2" \
+  "BATON_INSTANCE_URL=http://127.0.0.1:${NOTFOUND_PORT}"
+start_mock "$NOTFOUND_FIRST_PORT" "$WORKDIR/mock-404-page1.log" -fail-page 1 -fail-status 404
+expect_fail "404 on page 1" "user list returned not found" "$WORKDIR/run-404-page1" \
+  "BATON_INSTANCE_URL=http://127.0.0.1:${NOTFOUND_FIRST_PORT}"
 
 echo "All mock checks passed."

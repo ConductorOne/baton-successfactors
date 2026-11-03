@@ -15,6 +15,8 @@ import (
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/conductorone/baton-successfactors/internal/mocksf"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
@@ -30,17 +32,21 @@ const (
 
 // newMockClient starts the mock SuccessFactors server and returns a client for it.
 // It returns the request URIs that the mock gets on /odata/v2/EmpJob.
-func newMockClient(t *testing.T, users []json.RawMessage) (*client.SuccessFactorsClient, *httptest.Server, func() []string) {
+func newMockClient(t *testing.T, users []json.RawMessage, mutate ...func(*mocksf.Config)) (*client.SuccessFactorsClient, *httptest.Server, func() []string) {
 	t.Helper()
 	certPEM, keyPEM, err := mocksf.GenerateKeyPair(time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
 	require.NoError(t, err)
 	cert, err := mocksf.ParseCertPEM(certPEM)
 	require.NoError(t, err)
 
-	h, err := mocksf.NewHandler(mocksf.Config{
+	cfg := mocksf.Config{
 		Company: testCompany, ClientID: testClient, APIKey: testAPIKey, Issuer: testIssuer, Subject: testSubject,
 		Cert: cert, Users: users, PageSize: 5, Log: &strings.Builder{},
-	})
+	}
+	for _, m := range mutate {
+		m(&cfg)
+	}
+	h, err := mocksf.NewHandler(cfg)
 	require.NoError(t, err)
 
 	var mu sync.Mutex
@@ -172,4 +178,59 @@ func TestUserBuilderBadDateFails(t *testing.T) {
 	}
 	require.Error(t, lastErr)
 	assert.Contains(t, lastErr.Error(), "failed to build user resource")
+}
+
+func failPage(page, httpStatus int) func(*mocksf.Config) {
+	return func(c *mocksf.Config) { c.FailPage, c.FailStatus = page, httpStatus }
+}
+
+// A 404 from the user list must fail the sync with a code that the SDK neither
+// skips (NotFound) nor retries without limit (Unavailable, DeadlineExceeded).
+func requireFailedPrecondition(t *testing.T, err error) {
+	t.Helper()
+	require.Error(t, err)
+	code := status.Code(err)
+	assert.Equal(t, codes.FailedPrecondition, code)
+	assert.NotContains(t, []codes.Code{codes.NotFound, codes.Unavailable, codes.DeadlineExceeded}, code)
+	assert.Contains(t, err.Error(), "user list returned not found")
+}
+
+func TestUserBuilderListNotFoundOnLaterPageFails(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users, failPage(2, http.StatusNotFound))
+	builder := newUserBuilder(c)
+
+	_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+	require.NoError(t, err)
+	require.NotEmpty(t, results.NextPageToken)
+
+	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
+	requireFailedPrecondition(t, err)
+	assert.Contains(t, err.Error(), "page token set: true")
+	assert.NotContains(t, err.Error(), results.NextPageToken, "the page token is a URL and must not be printed")
+}
+
+func TestUserBuilderListNotFoundOnFirstPageFails(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users, failPage(1, http.StatusNotFound))
+
+	_, _, err = newUserBuilder(c).List(context.Background(), nil, resource.SyncOpAttrs{})
+	requireFailedPrecondition(t, err)
+	assert.Contains(t, err.Error(), "page token set: false")
+}
+
+func TestUserBuilderListOtherErrorsUnchanged(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+	c, _, _ := newMockClient(t, users, failPage(2, http.StatusBadRequest))
+	builder := newUserBuilder(c)
+
+	_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+	require.NoError(t, err)
+	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
+	require.Error(t, err)
+	assert.Equal(t, codes.InvalidArgument, status.Code(err))
+	assert.Contains(t, err.Error(), "failed to list users")
 }
