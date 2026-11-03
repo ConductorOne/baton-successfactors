@@ -386,3 +386,55 @@ func TestUserBuilderListShowsSuccessFactorsMessages(t *testing.T) {
 		assert.NotContains(t, err.Error(), url.QueryEscape(skip))
 	})
 }
+
+func TestUserBuilderListKeepsRateLimitDetails(t *testing.T) {
+	users, err := mocksf.DefaultUsers()
+	require.NoError(t, err)
+
+	// The server answers a page request with a 429 and an OData body that echoes the request URL.
+	var server *httptest.Server
+	limited := func(w http.ResponseWriter, r *http.Request) bool {
+		if r.URL.Path != mocksf.EmpJobPath || r.URL.Query().Get("$skiptoken") == "" {
+			return false
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Ratelimit-Limit", "100")
+		w.Header().Set("X-Ratelimit-Remaining", "0")
+		w.WriteHeader(http.StatusTooManyRequests)
+		_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]any{
+			"code":    "TOO_MANY_REQUESTS",
+			"message": map[string]string{"lang": "en-US", "value": "Slow down " + server.URL + r.URL.RequestURI()},
+		}})
+		return true
+	}
+	c, srv, _ := newInterceptedMockClient(t, users, limited)
+	server = srv
+	builder := newUserBuilder(c)
+
+	_, results, err := builder.List(context.Background(), nil, resource.SyncOpAttrs{})
+	require.NoError(t, err)
+	token := results.NextPageToken
+	u, err := url.Parse(token)
+	require.NoError(t, err)
+	skip := u.Query().Get("$skiptoken")
+	require.NotEmpty(t, skip)
+
+	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
+	require.Error(t, err)
+	assert.Equal(t, codes.Unavailable, status.Code(err), "the syncer retries Unavailable")
+
+	// The SDK retry reads the rate limit data from the status details.
+	var found *v2.RateLimitDescription
+	for _, d := range status.Convert(err).Details() {
+		if rl, ok := d.(*v2.RateLimitDescription); ok {
+			found = rl
+		}
+	}
+	require.NotNil(t, found, "the rate limit details must survive the redaction")
+	assert.Equal(t, v2.RateLimitDescription_STATUS_OVERLIMIT, found.GetStatus())
+
+	assert.Contains(t, err.Error(), "Slow down", "the SAP message is shown")
+	assert.NotContains(t, err.Error(), token)
+	assert.NotContains(t, err.Error(), skip)
+	assert.NotContains(t, err.Error(), url.QueryEscape(skip))
+}

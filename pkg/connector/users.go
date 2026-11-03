@@ -137,10 +137,13 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
 		}
 		// The error text can include a SuccessFactors error body that echoes the request URL.
-		// Keep the gRPC code, so that retries and warnings behave as before, and remove the
-		// page token from the text. %w is not used: it would keep the original text.
-		return nil, nil, status.Errorf(status.Code(err), "baton-successfactors: failed to list users: %s",
-			redactPageToken(err.Error(), opts.PageToken.Token))
+		// Keep the gRPC code and the details (the rate limit data that the SDK retry reads),
+		// and remove the page token from the text. %w is not used: it would keep the original
+		// text. status.Errorf is not used: it would drop the details.
+		st, _ := status.FromError(err)
+		p := st.Proto()
+		p.Message = "baton-successfactors: failed to list users: " + redactPageToken(p.Message, opts.PageToken.Token)
+		return nil, nil, status.ErrorProto(p)
 	}
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
