@@ -7,8 +7,10 @@ type Successfactors struct {
 	CompanyId string `mapstructure:"company-id"`
 	Cid string `mapstructure:"cid"`
 	SamlApiKey string `mapstructure:"saml-api-key"`
-	PublicKey []byte `mapstructure:"public-key"`
-	PrivateKey []byte `mapstructure:"private-key"`
+	PublicKey string `mapstructure:"public-key"`
+	PublicKeyFile []byte `mapstructure:"public-key-file"`
+	PrivateKey string `mapstructure:"private-key"`
+	PrivateKeyFile []byte `mapstructure:"private-key-file"`
 	InstanceUrl string `mapstructure:"instance-url"`
 	IssuerUrl string `mapstructure:"issuer-url"`
 	SubjectNameId string `mapstructure:"subject-name-id"`

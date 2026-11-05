@@ -130,7 +130,18 @@ if [ -n "$mismatches" ]; then
   echo "$mismatches" >&2
   exit 1
 fi
-echo "ok: $(jq '.resources | length' "$pos/resources.json") users match expected.json"
+echo "ok: $(jq '.resources | length' "$pos/resources.json") users match expected.json (key files)"
+
+# Positive run B (backward compatibility): the keys as PEM contents in BATON_PUBLIC_KEY and
+# BATON_PRIVATE_KEY, as in earlier releases.
+run_connector "$WORKDIR/run-contents" -u BATON_PUBLIC_KEY_FILE -u BATON_PRIVATE_KEY_FILE \
+  "BATON_PUBLIC_KEY=$(cat "$WORKDIR/cert.pem")" "BATON_PRIVATE_KEY=$(cat "$WORKDIR/key.pem")" \
+  || { tail -n 20 "$WORKDIR/run-contents/out.log" >&2; echo "FAIL: sync with PEM contents" >&2; exit 1; }
+contents_users="$(cd "$WORKDIR/run-contents" && "$BATON" resources --output-format=json | jq '.resources | length')"
+want_users="$(jq '.count' "$EXPECTED")"
+[ "$contents_users" = "$want_users" ] \
+  || { echo "FAIL: PEM contents: got $contents_users users, want $want_users" >&2; exit 1; }
+echo "ok: ${contents_users} users with the keys as PEM contents"
 
 echo "== negative checks"
 # 1. The old request style (assertion in the URL) gets the real 400 body.
@@ -150,13 +161,23 @@ after="$(grep -c 'POST /oauth/token -> 401' "$WORKDIR/mock.log" || true)"
 # 3. A cert that the mock does not trust gives a signature failure (401).
 before="$after"
 expect_fail "untrusted cert" "401" "$WORKDIR/run-cert" \
-  "BATON_PUBLIC_KEY=$WORKDIR/other/cert.pem" "BATON_PRIVATE_KEY=$WORKDIR/other/key.pem"
+  "BATON_PUBLIC_KEY_FILE=$WORKDIR/other/cert.pem" "BATON_PRIVATE_KEY_FILE=$WORKDIR/other/key.pem"
 after="$(grep -c 'POST /oauth/token -> 401' "$WORKDIR/mock.log" || true)"
 [ "$after" -gt "$before" ] || { echo "FAIL: untrusted cert: the mock did not answer 401" >&2; exit 1; }
 
-# 4. PEM contents in place of a file path fail.
-expect_fail "PEM contents instead of a path" "cannot access file" "$WORKDIR/run-pem" \
+# 4. PEM contents in a *_FILE variable (a path is expected) fail.
+expect_fail "PEM contents in the file field" "cannot access file" "$WORKDIR/run-pem" \
+  "BATON_PUBLIC_KEY_FILE=$(cat "$WORKDIR/cert.pem")"
+
+# 4b. Both fields of a pair set fail (mutually exclusive).
+expect_fail "certificate: text and file both set" "none of the others can be" "$WORKDIR/run-both" \
   "BATON_PUBLIC_KEY=$(cat "$WORKDIR/cert.pem")"
+expect_fail "private key: text and file both set" "none of the others can be" "$WORKDIR/run-both-key" \
+  "BATON_PRIVATE_KEY=$(cat "$WORKDIR/key.pem")"
+
+# 4c. Neither field of a pair set fails (at least one).
+expect_fail "certificate: neither set" "at least one of the flags" "$WORKDIR/run-neither" -u BATON_PUBLIC_KEY_FILE
+expect_fail "private key: neither set" "at least one of the flags" "$WORKDIR/run-neither-key" -u BATON_PRIVATE_KEY_FILE
 
 # 5. A user with an unparseable endDate fails the sync.
 start_mock "$BAD_PORT" "$WORKDIR/mock-bad-date.log" -scenario bad-date
