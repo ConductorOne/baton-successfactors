@@ -58,7 +58,7 @@ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=mock \
 go run ./test/mock-successfactors -cert .mock/cert.pem
 ```
 
-In a second terminal, set the variables. The values are the defaults of the mock. `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` are **file paths**, not PEM contents:
+In a second terminal, set the variables. The values are the defaults of the mock. `BATON_PUBLIC_KEY_FILE` and `BATON_PRIVATE_KEY_FILE` are **file paths**. To pass the PEM contents instead, use `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY`. Set one variable of each pair, not both:
 
 ```bash
 export BATON_INSTANCE_URL=http://127.0.0.1:8089
@@ -67,8 +67,8 @@ export BATON_CID=mock-client
 export BATON_SAML_API_KEY=mock-api-key
 export BATON_ISSUER_URL=https://mock-issuer.example
 export BATON_SUBJECT_NAME_ID=100001
-export BATON_PUBLIC_KEY="$PWD/.mock/cert.pem"
-export BATON_PRIVATE_KEY="$PWD/.mock/key.pem"
+export BATON_PUBLIC_KEY_FILE="$PWD/.mock/cert.pem"
+export BATON_PRIVATE_KEY_FILE="$PWD/.mock/key.pem"
 go run ./cmd/baton-successfactors
 baton resources
 ```
@@ -99,7 +99,7 @@ Limits:
 
 ## 6. Run the connector in Docker against the mock
 
-Use an image that includes the key-file change (the `--public-key` and `--private-key` values are file paths). Replace `<tag>` with a release that includes it.
+Use an image that includes the `BATON_PUBLIC_KEY_FILE` and `BATON_PRIVATE_KEY_FILE` variables. Replace `<tag>` with a release that includes them.
 
 Start the mock so that it listens on all interfaces and builds `__next` links with the host name that the container uses:
 
@@ -119,7 +119,7 @@ docker run --rm \
   -e BATON_SAML_API_KEY=mock-api-key \
   -e BATON_ISSUER_URL=https://mock-issuer.example \
   -e BATON_SUBJECT_NAME_ID=100001 \
-  -e BATON_PUBLIC_KEY=/keys/cert.pem -e BATON_PRIVATE_KEY=/keys/key.pem \
+  -e BATON_PUBLIC_KEY_FILE=/keys/cert.pem -e BATON_PRIVATE_KEY_FILE=/keys/key.pem \
   public.ecr.aws/conductorone/baton-successfactors:<tag> -f /out/sync.c1z
 baton -f sync.c1z resources
 ```
@@ -164,8 +164,10 @@ The `-not_after` option of `openssl req` needs OpenSSL 3.4 or newer. With an old
 
 | Symptom | Cause |
 |---|---|
-| `cannot access file` | `BATON_PUBLIC_KEY` or `BATON_PRIVATE_KEY` holds PEM contents. Use a file path. |
-| 401 and the mock log shows `POST /oauth/token -> 401` for a signed request | The mock `-cert` is not the certificate in `BATON_PUBLIC_KEY`, or the issuer, subject, API key, or client ID differs from the mock flags. |
+| `cannot access file` | `BATON_PUBLIC_KEY_FILE` or `BATON_PRIVATE_KEY_FILE` holds PEM contents. Use a file path, or use `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` for PEM contents. |
+| `none of the others can be` | Both `BATON_PUBLIC_KEY` and `BATON_PUBLIC_KEY_FILE` are set (or both private key variables). Set one variable of each pair. |
+| `at least one of the flags` | Neither `BATON_PUBLIC_KEY` nor `BATON_PUBLIC_KEY_FILE` is set (or neither private key variable). Set one variable of each pair. |
+| 401 and the mock log shows `POST /oauth/token -> 401` for a signed request | The mock `-cert` is not the certificate in `BATON_PUBLIC_KEY_FILE`, or the issuer, subject, API key, or client ID differs from the mock flags. |
 | 401, "Company ... does not exist" | `BATON_COMPANY_ID` does not match the mock `-company`. |
 | `connection refused` | The mock is not running, or (in Docker) the host name does not reach your machine. See section 6. |
 | `address already in use` | Another process uses the port. Use `-addr` and change `BATON_INSTANCE_URL`. |

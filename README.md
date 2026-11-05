@@ -10,7 +10,7 @@ Please reference the [SAP SuccessFactors API Reference Guide- OData V2](https://
 1. SAML API key from when you register the connector as an OAuth application in SuccessFactors.
 2. Issuer URL from when you register the connector as an OAuth application in SuccessFactors.
 3. Client ID of the application from when you register the connector as an OAuth application in SuccessFactors.
-4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors. Also provide the matching private key. The `--public-key` and `--private-key` flags (and the `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` environment variables) take the path to a PEM file, not the PEM contents.
+4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors. Also provide the matching private key. The `--public-key` and `--private-key` flags (and the `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` environment variables) take the PEM contents. Or use the `--public-key-file` and `--private-key-file` flags (and the `BATON_PUBLIC_KEY_FILE` and `BATON_PRIVATE_KEY_FILE` environment variables) with the paths to PEM files. Set one of each pair.
 5. User ID of the admin user that will be added to the SAML subject. Check out [Person/User IDs Used Within Employee Central - Employee Profile](https://userapps.support.sap.com/sap/support/knowledge/en/2493579) to learn more.
 6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFactors CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
 7. Instance URL for SuccessFactor API calls, you can find your API server following SAP documentation here [List of SAP SuccessFactors API server](https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM/d599f15995d348a1b45ba5603e2aba9b/af2b8d5437494b12be88fe374eba75b6.html)
@@ -36,14 +36,14 @@ After creating the OAuth Client Application, select edit application and note do
 
 ```
 brew install conductorone/baton/baton conductorone/baton/baton-successfactors
-baton-successfactors --public-key ./sf-cert.pem --private-key ./sf-key.pem
+baton-successfactors --public-key "$(cat ./sf-cert.pem)" --private-key "$(cat ./sf-key.pem)"
 baton resources
 ```
 
 ## docker
 
 ```
-docker run --rm -v $(pwd):/out -e BATON_COMPANY_ID=company_id -e BATON_CID=client_id -e BATON_SAML_API_KEY=saml_api_key -e BATON_INSTANCE_URL=instance_url -e BATON_ISSUER_URL=issuer_url -e BATON_SUBJECT_NAME_ID=subject_name_id -e BATON_PUBLIC_KEY=/out/sf-cert.pem -e BATON_PRIVATE_KEY=/out/sf-key.pem public.ecr.aws/conductorone/baton-successfactors:latest -f "/out/sync.c1z"
+docker run --rm -v $(pwd):/out -e BATON_COMPANY_ID=company_id -e BATON_CID=client_id -e BATON_SAML_API_KEY=saml_api_key -e BATON_INSTANCE_URL=instance_url -e BATON_ISSUER_URL=issuer_url -e BATON_SUBJECT_NAME_ID=subject_name_id -e BATON_PUBLIC_KEY_FILE=/out/sf-cert.pem -e BATON_PRIVATE_KEY_FILE=/out/sf-key.pem public.ecr.aws/conductorone/baton-successfactors:latest -f "/out/sync.c1z"
 docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c1z" resources
 ```
 
@@ -53,7 +53,7 @@ docker run --rm -v $(pwd):/out ghcr.io/conductorone/baton:latest -f "/out/sync.c
 go install github.com/conductorone/baton/cmd/baton@main
 go install github.com/conductorone/baton-successfactors/cmd/baton-successfactors@main
 
-baton-successfactors --public-key ./sf-cert.pem --private-key ./sf-key.pem
+baton-successfactors --public-key-file ./sf-cert.pem --private-key-file ./sf-key.pem
 
 baton resources
 ```
@@ -123,9 +123,11 @@ Flags:
       --log-path strings                                 The file path to write logs to ($BATON_LOG_PATH)
       --otel-collector-endpoint string                   The endpoint of the OpenTelemetry collector to send observability data to (used for both tracing and logging if specific endpoints are not provided) ($BATON_OTEL_COLLECTOR_ENDPOINT)
       --parallel-sync                                    Deprecated: use --workers instead. ($BATON_PARALLEL_SYNC)
-      --private-key string                               required: Private key (PEM file) ($BATON_PRIVATE_KEY)
+      --private-key string                               Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields. ($BATON_PRIVATE_KEY)
+      --private-key-file string                          Upload the private key PEM file (recommended). Set this field or Private key (PEM contents), not both. ($BATON_PRIVATE_KEY_FILE)
   -p, --provisioning                                     This must be set in order for provisioning actions to be enabled ($BATON_PROVISIONING)
-      --public-key string                                required: Public key certificate (PEM file) ($BATON_PUBLIC_KEY)
+      --public-key string                                Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields. ($BATON_PUBLIC_KEY)
+      --public-key-file string                           Upload the certificate PEM file (recommended). Set this field or Certificate (PEM contents), not both. ($BATON_PUBLIC_KEY_FILE)
       --saml-api-key string                              required: SAML API Key ($BATON_SAML_API_KEY)
       --skip-entitlements-and-grants                     This must be set to skip syncing of entitlements and grants ($BATON_SKIP_ENTITLEMENTS_AND_GRANTS)
       --skip-full-sync                                   This must be set to skip a full sync ($BATON_SKIP_FULL_SYNC)
