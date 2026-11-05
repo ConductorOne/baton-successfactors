@@ -26,7 +26,7 @@ Code: `internal/mocksf` (handler and fixtures), `test/mock-successfactors` (comm
 
 - Go (the version in `go.mod`)
 - `openssl`, `jq`, `curl`
-- A `baton` CLI **with the same version as `baton-sdk` in `go.mod`**. An older CLI cannot read the `sync.c1z` file. Run `./scripts/get-baton-sdk.sh` in a scratch directory to download the matching version, and put the `baton` file on your `PATH`.
+- A `baton` CLI **at or above the `baton-sdk` version in `go.mod`**. An older CLI cannot read the `sync.c1z` file. Download the CLI from the [baton-sdk releases page](https://github.com/conductorone/baton-sdk/releases), and put the `baton` file on your `PATH`. CI uses the shared `get-baton` action.
 
 ## 3. Quick start
 
@@ -169,4 +169,4 @@ The `-not_after` option of `openssl req` needs OpenSSL 3.4 or newer. With an old
 | 401, "Company ... does not exist" | `BATON_COMPANY_ID` does not match the mock `-company`. |
 | `connection refused` | The mock is not running, or (in Docker) the host name does not reach your machine. See section 6. |
 | `address already in use` | Another process uses the port. Use `-addr` and change `BATON_INSTANCE_URL`. |
-| `c1z: invalid file` from `baton` | The `baton` CLI is older than the `baton-sdk` version in `go.mod`. Run `./scripts/get-baton-sdk.sh`. |
+| `c1z: invalid file` from `baton` | The `baton` CLI is older than the `baton-sdk` version in `go.mod`. Download a newer CLI from the [baton-sdk releases page](https://github.com/conductorone/baton-sdk/releases). |
