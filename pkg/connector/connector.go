@@ -46,16 +46,33 @@ func (d *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 	return nil, nil
 }
 
+// pemValue returns the PEM contents from the file field when it is set, and the string field otherwise.
+// The config validation makes sure that exactly one of the two is set. It returns "" if neither is set.
+func pemValue(text string, file []byte) string {
+	if len(file) > 0 {
+		return string(file)
+	}
+	return text
+}
+
 // New returns a new instance of the connector.
-// The public and private key values are PEM contents, read from files by the SDK.
+// Each key comes from a string field (PEM contents) or from a file field (read by the SDK).
 func New(ctx context.Context, config *cfg.Successfactors, opts *cli.ConnectorOpts) (connectorbuilder.ConnectorBuilderV2, []connectorbuilder.Opt, error) {
+	publicKey := pemValue(config.PublicKey, config.PublicKeyFile)
+	privateKey := pemValue(config.PrivateKey, config.PrivateKeyFile)
+	if publicKey == "" {
+		return nil, nil, fmt.Errorf("baton-successfactors: the certificate is missing: set public-key or public-key-file")
+	}
+	if privateKey == "" {
+		return nil, nil, fmt.Errorf("baton-successfactors: the private key is missing: set private-key or private-key-file")
+	}
 	successFactorsClient, err := client.New(
 		ctx,
 		config.InstanceUrl,
 		config.CompanyId,
 		config.Cid,
-		string(config.PublicKey),
-		string(config.PrivateKey),
+		publicKey,
+		privateKey,
 		config.IssuerUrl,
 		config.SubjectNameId,
 		config.SamlApiKey,

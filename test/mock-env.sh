@@ -13,6 +13,6 @@ export BATON_CID='mock-client'
 export BATON_SAML_API_KEY='mock-api-key'
 export BATON_ISSUER_URL='https://mock-issuer.example'
 export BATON_SUBJECT_NAME_ID='100001'
-export BATON_PUBLIC_KEY='${dir}/cert.pem'
-export BATON_PRIVATE_KEY='${dir}/key.pem'
+export BATON_PUBLIC_KEY_FILE='${dir}/cert.pem'
+export BATON_PRIVATE_KEY_FILE='${dir}/key.pem'
 ENV
