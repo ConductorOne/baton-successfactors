@@ -58,7 +58,7 @@ mock:
 
 .PHONY: test-mock
 # Run the connector and the baton CLI against the mock (the CI mock-test job).
-# BATON must be a baton CLI with the same version as baton-sdk in go.mod.
+# baton must be on PATH, at or above the baton-sdk version in go.mod.
 test-mock:
 	@mkdir -p $(MOCK_BIN)
 	go build -o $(MOCK_BIN)/mock-successfactors ./test/mock-successfactors
