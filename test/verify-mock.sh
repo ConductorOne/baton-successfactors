@@ -4,7 +4,7 @@
 # Environment:
 #   BATON_SUCCESSFACTORS  connector binary (absolute path)
 #   MOCK                  mock server binary (absolute path)
-#   BATON                 baton CLI, must match the baton-sdk version in go.mod (default: baton)
+#   BATON                 baton CLI, at or above the baton-sdk version in go.mod (default: baton)
 #   WORKDIR               work directory (default: .mock)
 set -euo pipefail
 

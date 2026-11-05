@@ -40,7 +40,7 @@ jobs:
         continue-on-error: true
         run: ./baton-successfactors
       - name: Install baton
-        run: ./scripts/get-baton.sh && mv baton /usr/local/bin
+        uses: ConductorOne/github-workflows/actions/get-baton@v4
       - name: Test baton resources
         id: live_verify
         continue-on-error: true
@@ -78,12 +78,11 @@ jobs:
           mkdir -p .mock/bin
           go build -mod=vendor -o .mock/bin/baton-successfactors ./cmd/baton-successfactors
           go build -mod=vendor -o .mock/bin/mock-successfactors ./test/mock-successfactors
-      - name: Install baton (same version as baton-sdk in go.mod)
-        run: ./scripts/get-baton-sdk.sh && mv baton .mock/bin/baton
+      - name: Install baton
+        uses: ConductorOne/github-workflows/actions/get-baton@v4
       - name: Run the connector against the mock server
         env:
           MOCK: ${{ github.workspace }}/.mock/bin/mock-successfactors
           BATON_SUCCESSFACTORS: ${{ github.workspace }}/.mock/bin/baton-successfactors
-          BATON: ${{ github.workspace }}/.mock/bin/baton
           WORKDIR: ${{ runner.temp }}/mock
         run: ./test/verify-mock.sh
