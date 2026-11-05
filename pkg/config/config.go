@@ -21,13 +21,24 @@ var (
 		field.WithRequired(true),
 	)
 
-	PubKeyField = field.FileUploadField(
+	// The key fields come in pairs: PEM contents (a string) or a PEM file. Set exactly one of each
+	// pair. The string fields keep the names and the meaning of earlier releases. The pair
+	// constraints are in FieldRelationships, so no field is WithRequired.
+	PubKeyField = field.StringField(
 		"public-key",
-		[]string{".pem", ".crt"},
-		field.WithDisplayName("Certificate (PEM)"),
-		field.WithDescription("Public key certificate (PEM file)"),
+		field.WithDisplayName("Certificate (PEM contents)"),
+		field.WithDescription("Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. "+
+			"Use this field only if you cannot upload a file. Set one of the two fields."),
 		field.WithPlaceholder("Your SuccessFactors certificate"),
-		field.WithRequired(true),
+		field.WithIsSecret(true),
+	)
+
+	PubKeyFileField = field.FileUploadField(
+		"public-key-file",
+		[]string{".pem", ".crt"},
+		field.WithDisplayName("Certificate (PEM file)"),
+		field.WithDescription("Upload the certificate PEM file (recommended). "+
+			"Set this field or Certificate (PEM contents), not both."),
 		field.WithIsSecret(true),
 	)
 
@@ -40,13 +51,21 @@ var (
 		field.WithIsSecret(true),
 	)
 
-	PrivKeyField = field.FileUploadField(
+	PrivKeyField = field.StringField(
 		"private-key",
-		[]string{".pem", ".key"},
-		field.WithDisplayName("Private Key (PEM)"),
-		field.WithDescription("Private key (PEM file)"),
+		field.WithDisplayName("Private key (PEM contents)"),
+		field.WithDescription("Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. "+
+			"Use this field only if you cannot upload a file. Set one of the two fields."),
 		field.WithPlaceholder("Your SuccessFactors private key"),
-		field.WithRequired(true),
+		field.WithIsSecret(true),
+	)
+
+	PrivKeyFileField = field.FileUploadField(
+		"private-key-file",
+		[]string{".pem", ".key"},
+		field.WithDisplayName("Private key (PEM file)"),
+		field.WithDescription("Upload the private key PEM file (recommended). "+
+			"Set this field or Private key (PEM contents), not both."),
 		field.WithIsSecret(true),
 	)
 
@@ -79,7 +98,9 @@ var (
 		ClientIdField,
 		SAMLAPIKeyField,
 		PubKeyField,
+		PubKeyFileField,
 		PrivKeyField,
+		PrivKeyFileField,
 		InstanceUrlField,
 		IssuerUrlField,
 		SubjectNameIdField,
@@ -89,7 +110,12 @@ var (
 	// ConfigurationFields that can be automatically validated. For example, a
 	// username and password can be required together, or an access token can be
 	// marked as mutually exclusive from the username password pair.
-	FieldRelationships = []field.SchemaFieldRelationship{}
+	FieldRelationships = []field.SchemaFieldRelationship{
+		field.FieldsMutuallyExclusive(PubKeyField, PubKeyFileField),
+		field.FieldsAtLeastOneUsed(PubKeyField, PubKeyFileField),
+		field.FieldsMutuallyExclusive(PrivKeyField, PrivKeyFileField),
+		field.FieldsAtLeastOneUsed(PrivKeyField, PrivKeyFileField),
+	}
 )
 
 //go:generate go run -tags=generate ./gen

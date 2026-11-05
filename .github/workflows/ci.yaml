@@ -21,7 +21,7 @@ jobs:
       - name: Build baton-successfactors
         run: go build ./cmd/baton-successfactors
       - name: Write key files
-        # The connector reads --public-key and --private-key from file paths.
+        # The connector reads --public-key-file and --private-key-file from file paths.
         # The paths are exported with GITHUB_ENV, because the runner context
         # is not available in the job-level env block.
         env:
@@ -31,8 +31,8 @@ jobs:
           umask 077
           printf '%s' "$SF_PUBLIC_KEY" > "$RUNNER_TEMP/sf-public-key.pem"
           printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
-          echo "BATON_PUBLIC_KEY=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
-          echo "BATON_PRIVATE_KEY=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
+          echo "BATON_PUBLIC_KEY_FILE=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
+          echo "BATON_PRIVATE_KEY_FILE=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
       # TODO(CXE-371): remove continue-on-error from the two live steps when the
       # api68sales tenant credentials are fixed. The mock-test job covers the connector.
       - name: Run baton-successfactors

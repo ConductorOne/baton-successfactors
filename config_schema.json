@@ -131,15 +131,18 @@
     },
     {
       "name": "public-key",
-      "displayName": "Certificate (PEM)",
-      "description": "Public key certificate (PEM file)",
+      "displayName": "Certificate (PEM contents)",
+      "description": "Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields.",
       "placeholder": "Your SuccessFactors certificate",
-      "isRequired": true,
+      "isSecret": true,
+      "stringField": {}
+    },
+    {
+      "name": "public-key-file",
+      "displayName": "Certificate (PEM file)",
+      "description": "Upload the certificate PEM file (recommended). Set this field or Certificate (PEM contents), not both.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        },
         "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
         "allowedExtensions": [
           ".pem",
@@ -149,15 +152,18 @@
     },
     {
       "name": "private-key",
-      "displayName": "Private Key (PEM)",
-      "description": "Private key (PEM file)",
+      "displayName": "Private key (PEM contents)",
+      "description": "Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields.",
       "placeholder": "Your SuccessFactors private key",
-      "isRequired": true,
+      "isSecret": true,
+      "stringField": {}
+    },
+    {
+      "name": "private-key-file",
+      "displayName": "Private key (PEM file)",
+      "description": "Upload the private key PEM file (recommended). Set this field or Private key (PEM contents), not both.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        },
         "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
         "allowedExtensions": [
           ".pem",
@@ -200,6 +206,36 @@
           "isRequired": true
         }
       }
+    }
+  ],
+  "constraints": [
+    {
+      "kind": "CONSTRAINT_KIND_MUTUALLY_EXCLUSIVE",
+      "fieldNames": [
+        "public-key",
+        "public-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_AT_LEAST_ONE",
+      "fieldNames": [
+        "public-key",
+        "public-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_MUTUALLY_EXCLUSIVE",
+      "fieldNames": [
+        "private-key",
+        "private-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_AT_LEAST_ONE",
+      "fieldNames": [
+        "private-key",
+        "private-key-file"
+      ]
     }
   ],
   "displayName": "SuccessFactors",
