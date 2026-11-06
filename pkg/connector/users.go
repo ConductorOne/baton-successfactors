@@ -3,15 +3,17 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type userBuilder struct {
@@ -94,37 +96,87 @@ func userResource(user client.Results) (*v2.Resource, error) {
 	return newUserResource, nil
 }
 
+// redactPageToken removes the page token from msg. The token is a full __next URL
+// with a $skiptoken query parameter. It replaces the raw and escaped forms of the
+// token, and the $skiptoken value on its own.
+func redactPageToken(msg, token string) string {
+	if token == "" {
+		return msg
+	}
+	for _, t := range []string{token, url.QueryEscape(token), url.PathEscape(token)} {
+		msg = strings.ReplaceAll(msg, t, "<page-token>")
+	}
+	if u, err := url.Parse(token); err == nil {
+		if v := u.Query().Get("$skiptoken"); v != "" {
+			for _, t := range []string{v, url.QueryEscape(v), url.PathEscape(v)} {
+				msg = strings.ReplaceAll(msg, t, "<redacted>")
+			}
+		}
+	}
+	return msg
+}
+
+// listError turns an error from the user list into a status error for the SDK.
+//   - The gRPC code and the details are kept (the rate limit data that the SDK retry reads).
+//     status.Errorf would drop the details.
+//   - An error without a gRPC status is mapped as the gRPC server does: a wrapped context
+//     error gives DeadlineExceeded or Canceled, anything else gives Unknown. Without this,
+//     a context error would become Unknown, which the syncer does not retry.
+//   - The page token is removed from the text. The text can include a SuccessFactors error body
+//     that echoes the request URL, and a url.Parse error contains the whole token.
+//     %w is not used: it would keep the original text.
+func listError(err error, pageToken string) error {
+	st, ok := status.FromError(err)
+	if !ok {
+		st = status.FromContextError(err)
+	}
+	p := st.Proto()
+	p.Message = "baton-successfactors: failed to list users: " + redactPageToken(p.Message, pageToken)
+	return status.ErrorProto(p)
+}
+
 func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 	return resourceTypeUser
 }
 
 // List returns all the users from the database as resource objects.
 // Users include a UserTrait because they are the 'shape' of a standard user.
-func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, pToken *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
-	users, paginationURL, err := o.client.GetUserData(ctx, pToken.Token)
+func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resource.SyncOpAttrs) ([]*v2.Resource, *resource.SyncOpResults, error) {
+	users, paginationURL, err := o.client.GetUserData(ctx, opts.PageToken.Token)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("failed to list users: %w", err)
+		// A 404 from the user list must fail the sync. The SDK treats NotFound as a
+		// warning and would end the sync with a partial list, so C1 would delete the
+		// missing users. FailedPrecondition is not retried (Unavailable is, without
+		// limit). The error is formatted with %v on purpose: %w would let status.Code
+		// find the inner NotFound again. The inner text is kept for debugging, with the
+		// page token removed: it is a URL, and the server could echo it in the response body.
+		if status.Code(err) == codes.NotFound {
+			return nil, nil, status.Errorf(codes.FailedPrecondition,
+				"baton-successfactors: user list returned not found (page token set: %t): %s",
+				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
+		}
+		return nil, nil, listError(err, opts.PageToken.Token)
 	}
 	rv := make([]*v2.Resource, 0)
 	for _, user := range users {
 		ur, err := userResource(user)
 		if err != nil {
-			return nil, "", nil, err
+			return nil, nil, fmt.Errorf("baton-successfactors: failed to build user resource: %w", err)
 		}
 		rv = append(rv, ur)
 	}
 
-	return rv, paginationURL, nil, nil
+	return rv, &resource.SyncOpResults{NextPageToken: paginationURL}, nil
 }
 
 // Entitlements always returns an empty slice for users.
-func (o *userBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Entitlements(_ context.Context, _ *v2.Resource, _ resource.SyncOpAttrs) ([]*v2.Entitlement, *resource.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 // Grants always returns an empty slice for users since they don't have any entitlements.
-func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Grants(_ context.Context, _ *v2.Resource, _ resource.SyncOpAttrs) ([]*v2.Grant, *resource.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 func newUserBuilder(client *client.SuccessFactorsClient) *userBuilder {

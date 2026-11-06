@@ -1,0 +1,270 @@
+package mocksf
+
+import (
+	"bytes"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/conductorone/baton-successfactors/pkg/connector/client"
+)
+
+type env struct {
+	srv     *httptest.Server
+	cfg     Config
+	certPEM string
+	keyPEM  string
+	log     *bytes.Buffer
+}
+
+func newEnv(t *testing.T, notBefore, notAfter time.Time, mutate func(*Config)) *env {
+	t.Helper()
+	certPEM, keyPEM, err := GenerateKeyPair(notBefore, notAfter)
+	require.NoError(t, err)
+	cert, err := ParseCertPEM(certPEM)
+	require.NoError(t, err)
+	users, err := DefaultUsers()
+	require.NoError(t, err)
+	e := &env{log: &bytes.Buffer{}, certPEM: string(certPEM), keyPEM: string(keyPEM)}
+	e.cfg = Config{
+		Company: "co", ClientID: "cid", APIKey: "key", Issuer: "https://issuer.example", Subject: "100001",
+		Cert: cert, Users: users, Log: e.log,
+	}
+	if mutate != nil {
+		mutate(&e.cfg)
+	}
+	h, err := NewHandler(e.cfg)
+	require.NoError(t, err)
+	e.srv = httptest.NewServer(h)
+	t.Cleanup(e.srv.Close)
+	return e
+}
+
+func validEnv(t *testing.T, mutate func(*Config)) *env {
+	return newEnv(t, time.Now().Add(-time.Hour), time.Now().Add(time.Hour), mutate)
+}
+
+// client builds the real connector client against the mock.
+func (e *env) client(t *testing.T, company, subject string) *client.SuccessFactorsClient {
+	t.Helper()
+	c, err := client.New(context.Background(), e.srv.URL, company, "cid", e.certPEM, e.keyPEM, "https://issuer.example", subject, "key")
+	require.NoError(t, err)
+	return c
+}
+
+// do sends one request and returns the status and body.
+func do(t *testing.T, method, target, contentType, bearer, body string) (int, string) {
+	t.Helper()
+	req, err := http.NewRequestWithContext(t.Context(), method, target, strings.NewReader(body))
+	require.NoError(t, err)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	if bearer != "" {
+		req.Header.Set("Authorization", "Bearer "+bearer)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, string(b)
+}
+
+func post(t *testing.T, target string, form url.Values) (int, string) {
+	t.Helper()
+	return do(t, http.MethodPost, target, "application/x-www-form-urlencoded", "", form.Encode())
+}
+
+func TestTokenURLParameterRejected(t *testing.T) {
+	e := validEnv(t, nil)
+	status, body := post(t, e.srv.URL+TokenPath+"?assertion=x", url.Values{})
+	assert.Equal(t, http.StatusBadRequest, status)
+	assert.JSONEq(t, `{"errorHttpCode":"400","errorMessage":"SAML assertion is not allowed in URL parameter."}`, body)
+}
+
+func TestTokenWrongContentType(t *testing.T) {
+	e := validEnv(t, nil)
+	status, _ := do(t, http.MethodPost, e.srv.URL+TokenPath, "application/json", "", "{}")
+	assert.Equal(t, http.StatusBadRequest, status)
+}
+
+func TestSyncPagesWithRealClient(t *testing.T) {
+	e := validEnv(t, func(c *Config) { c.PageSize = 5 })
+	c := e.client(t, "co", "100001")
+
+	var sizes []int
+	token := ""
+	for i := 0; i < 10; i++ {
+		users, next, err := c.GetUserData(context.Background(), token)
+		require.NoError(t, err)
+		sizes = append(sizes, len(users))
+		if next == "" {
+			break
+		}
+		assert.True(t, strings.HasPrefix(next, e.srv.URL+EmpJobPath+"?%24skiptoken="), next)
+		token = next
+	}
+	assert.Equal(t, []int{5, 5, 2}, sizes)
+}
+
+func TestSkipTokenFormat(t *testing.T) {
+	e := validEnv(t, nil)
+	c := e.client(t, "co", "100001")
+	_, next, err := c.GetUserData(context.Background(), "")
+	require.NoError(t, err)
+	u, err := url.Parse(next)
+	require.NoError(t, err)
+	raw, err := base64.StdEncoding.DecodeString(u.Query().Get("$skiptoken"))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"startRow":5,"endRow":10}`, string(raw))
+}
+
+func TestWrongCompany(t *testing.T) {
+	e := validEnv(t, nil)
+	c := e.client(t, "other", "100001")
+	_, _, err := c.GetUserData(context.Background(), "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "401")
+}
+
+func TestCompanyBodyMatchesRealFormat(t *testing.T) {
+	e := validEnv(t, nil)
+	status, body := post(t, e.srv.URL+TokenPath, url.Values{"company_id": {"other"}})
+	assert.Equal(t, http.StatusUnauthorized, status)
+	assert.JSONEq(t, `{"errorHttpCode":"401","errorMessage":"Company other does not exist in this data center. Please verify the company id and the endpoint URL you are using."}`, body)
+}
+
+// assertionRejected sends the client's assertion as the real client does and returns the mock's reply.
+func assertionRejected(t *testing.T, e *env, c *client.SuccessFactorsClient, clientID string) string {
+	t.Helper()
+	status, body := post(t, e.srv.URL+TokenPath, url.Values{
+		"company_id": {"co"}, "client_id": {clientID},
+		"grant_type": {"urn:ietf:params:oauth:grant-type:saml2-bearer"}, "assertion": {c.SAMLAssertion},
+	})
+	assert.Equal(t, http.StatusUnauthorized, status)
+	return body
+}
+
+func TestRejectedAssertionsGiveTheReason(t *testing.T) {
+	e := validEnv(t, nil)
+	ctx := context.Background()
+	mk := func(issuer, subject, apiKey, certPEM, keyPEM string) *client.SuccessFactorsClient {
+		c, err := client.New(ctx, e.srv.URL, "co", "cid", certPEM, keyPEM, issuer, subject, apiKey)
+		require.NoError(t, err)
+		return c
+	}
+
+	// The control case: the same inputs pass.
+	good := mk("https://issuer.example", "100001", "key", e.certPEM, e.keyPEM)
+	status, _ := post(t, e.srv.URL+TokenPath, url.Values{
+		"company_id": {"co"}, "client_id": {"cid"},
+		"grant_type": {"urn:ietf:params:oauth:grant-type:saml2-bearer"}, "assertion": {good.SAMLAssertion},
+	})
+	require.Equal(t, http.StatusOK, status)
+
+	assert.Contains(t, assertionRejected(t, e, mk("https://other.example", "100001", "key", e.certPEM, e.keyPEM), "cid"), "issuer does not match")
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "wrong", "key", e.certPEM, e.keyPEM), "cid"), "subject does not match")
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "100001", "wrong", e.certPEM, e.keyPEM), "cid"), "api_key does not match")
+	assert.Contains(t, assertionRejected(t, e, good, "wrong-client"), "unknown client_id")
+
+	// A different cert than the mock trusts gives a signature failure.
+	other, otherKey, err := GenerateKeyPair(time.Now().Add(-time.Hour), time.Now().Add(time.Hour))
+	require.NoError(t, err)
+	assert.Contains(t, assertionRejected(t, e, mk("https://issuer.example", "100001", "key", string(other), string(otherKey)), "cid"), "signature check failed")
+
+	// A wrong recipient: the mock is reached under another public URL.
+	e2 := validEnv(t, func(c *Config) { c.PublicURL = "http://elsewhere.example" })
+	c2, err := client.New(ctx, e2.srv.URL, "co", "cid", e2.certPEM, e2.keyPEM, "https://issuer.example", "100001", "key")
+	require.NoError(t, err)
+	assert.Contains(t, assertionRejected(t, e2, c2, "cid"), "recipient does not match")
+}
+
+func TestExpiredAssertionRejected(t *testing.T) {
+	// The assertion window starts now. A mock clock far in the future is outside it.
+	e := validEnv(t, func(c *Config) { c.Now = func() time.Time { return time.Now().Add(48 * time.Hour) } })
+	c := e.client(t, "co", "100001")
+	assert.Contains(t, assertionRejected(t, e, c, "cid"), "outside its time window")
+}
+
+func TestExpiredCertToggle(t *testing.T) {
+	past := time.Now().Add(-48 * time.Hour)
+	accept := newEnv(t, past.Add(-time.Hour), past, nil)
+	users, _, err := accept.client(t, "co", "100001").GetUserData(context.Background(), "")
+	require.NoError(t, err)
+	assert.NotEmpty(t, users)
+
+	reject := newEnv(t, past.Add(-time.Hour), past, func(c *Config) { c.RejectExpiredCert = true })
+	_, _, err = reject.client(t, "co", "100001").GetUserData(context.Background(), "")
+	require.Error(t, err)
+}
+
+func TestEmpJobRequiresBearer(t *testing.T) {
+	e := validEnv(t, nil)
+	status, _ := do(t, http.MethodGet, e.srv.URL+EmpJobPath, "", "", "")
+	assert.Equal(t, http.StatusUnauthorized, status)
+
+	status, _ = do(t, http.MethodGet, e.srv.URL+EmpJobPath, "", "made-up", "")
+	assert.Equal(t, http.StatusUnauthorized, status)
+}
+
+func TestFailPage(t *testing.T) {
+	e := validEnv(t, func(c *Config) { c.FailPage = 2; c.FailStatus = 500 })
+	c := e.client(t, "co", "100001")
+	_, next, err := c.GetUserData(context.Background(), "")
+	require.NoError(t, err)
+	_, _, err = c.GetUserData(context.Background(), next)
+	require.Error(t, err)
+}
+
+func TestScenarios(t *testing.T) {
+	users, err := DefaultUsers()
+	require.NoError(t, err)
+	bad, err := ApplyScenario(users, ScenarioBadDate)
+	require.NoError(t, err)
+	assert.Len(t, bad, len(users)+1)
+	empty, err := ApplyScenario(users, ScenarioEmpty)
+	require.NoError(t, err)
+	assert.Empty(t, empty)
+	_, err = ApplyScenario(users, "nope")
+	require.Error(t, err)
+
+	e := validEnv(t, func(c *Config) { c.Users = empty })
+	got, next, err := e.client(t, "co", "100001").GetUserData(context.Background(), "")
+	require.NoError(t, err)
+	assert.Empty(t, got)
+	assert.Empty(t, next)
+}
+
+func TestFixturesMatchExpected(t *testing.T) {
+	users, err := DefaultUsers()
+	require.NoError(t, err)
+	var exp struct {
+		Count int                       `json:"count"`
+		Users map[string]map[string]any `json:"users"`
+	}
+	require.NoError(t, json.Unmarshal(ExpectedJSON, &exp))
+	assert.Equal(t, exp.Count, len(users))
+	assert.Len(t, exp.Users, len(users))
+}
+
+func TestLogNeverContainsSecrets(t *testing.T) {
+	e := validEnv(t, nil)
+	c := e.client(t, "co", "100001")
+	_, _, err := c.GetUserData(context.Background(), "")
+	require.NoError(t, err)
+	logged := e.log.String()
+	assert.Contains(t, logged, "POST /oauth/token -> 200")
+	assert.NotContains(t, logged, c.SAMLAssertion)
+	assert.NotContains(t, logged, "assertion=")
+	assert.NotContains(t, logged, "Bearer")
+}

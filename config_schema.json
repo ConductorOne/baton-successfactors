@@ -96,6 +96,7 @@
       "name": "company-id",
       "displayName": "Company ID",
       "description": "Company ID",
+      "placeholder": "Your SuccessFactors Company ID",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -107,6 +108,7 @@
       "name": "cid",
       "displayName": "Client ID",
       "description": "Client ID",
+      "placeholder": "Your SuccessFactors Client ID",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -118,6 +120,7 @@
       "name": "saml-api-key",
       "displayName": "SAML API key",
       "description": "SAML API Key",
+      "placeholder": "Your SuccessFactors SAML API key",
       "isRequired": true,
       "isSecret": true,
       "stringField": {
@@ -128,32 +131,51 @@
     },
     {
       "name": "public-key",
-      "displayName": "Certificate (PEM)",
-      "description": "Public Key",
-      "isRequired": true,
+      "displayName": "Certificate (PEM contents)",
+      "description": "Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields.",
+      "placeholder": "Your SuccessFactors certificate",
+      "isSecret": true,
+      "stringField": {}
+    },
+    {
+      "name": "public-key-file",
+      "displayName": "Certificate (PEM file)",
+      "description": "Upload the certificate PEM file (recommended). Set this field or Certificate (PEM contents), not both.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        }
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".crt"
+        ]
       }
     },
     {
       "name": "private-key",
-      "displayName": "Private Key (PEM)",
-      "description": "Private Key",
-      "isRequired": true,
+      "displayName": "Private key (PEM contents)",
+      "description": "Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields.",
+      "placeholder": "Your SuccessFactors private key",
+      "isSecret": true,
+      "stringField": {}
+    },
+    {
+      "name": "private-key-file",
+      "displayName": "Private key (PEM file)",
+      "description": "Upload the private key PEM file (recommended). Set this field or Private key (PEM contents), not both.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        }
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".key"
+        ]
       }
     },
     {
       "name": "instance-url",
       "displayName": "Instance URL",
       "description": "Your Success Factors domain, ex: https://successfactorsserver.com",
+      "placeholder": "Your SuccessFactors instance URL",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -165,6 +187,7 @@
       "name": "issuer-url",
       "displayName": "Issuer URL",
       "description": "Your SAML Issuer domain, ex: https://exampleissuer.com",
+      "placeholder": "Your SuccessFactors issuer URL",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -176,12 +199,43 @@
       "name": "subject-name-id",
       "displayName": "Subject name ID",
       "description": "Subject Name ID",
+      "placeholder": "Your SuccessFactors subject name ID",
       "isRequired": true,
       "stringField": {
         "rules": {
           "isRequired": true
         }
       }
+    }
+  ],
+  "constraints": [
+    {
+      "kind": "CONSTRAINT_KIND_MUTUALLY_EXCLUSIVE",
+      "fieldNames": [
+        "public-key",
+        "public-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_AT_LEAST_ONE",
+      "fieldNames": [
+        "public-key",
+        "public-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_MUTUALLY_EXCLUSIVE",
+      "fieldNames": [
+        "private-key",
+        "private-key-file"
+      ]
+    },
+    {
+      "kind": "CONSTRAINT_KIND_AT_LEAST_ONE",
+      "fieldNames": [
+        "private-key",
+        "private-key-file"
+      ]
     }
   ],
   "displayName": "SuccessFactors",

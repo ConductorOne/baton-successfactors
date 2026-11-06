@@ -93,7 +93,9 @@ func (c *SuccessFactorsClient) doRequest(ctx context.Context, method string, u *
 	if err != nil {
 		return err
 	}
-	doOpts := []uhttp.DoOption{}
+	// Show the SuccessFactors error text in the error, not only the status.
+	var errResp ErrorResponse
+	doOpts := []uhttp.DoOption{uhttp.WithErrorResponse(&errResp)}
 	if response != nil {
 		doOpts = append(doOpts, uhttp.WithJSONResponse(response))
 	}
@@ -202,16 +204,16 @@ func createAndSignSAMLAssertion(issuer, audience, recipient, subjectNameId, apiK
 
 func (c *SuccessFactorsClient) GetBearer(ctx context.Context) (string, error) {
 	var response Bearer
-	reqOpts := []uhttp.RequestOption{
-		uhttp.WithContentTypeFormHeader(),
-	}
-	u := c.baseURL.JoinPath(c.baseURL.RawPath, tokenPath)
-	values := u.Query()
+	// SuccessFactors rejects a SAML assertion in the URL, so send the parameters in the form body.
+	values := url.Values{}
 	values.Add("company_id", c.compID)
 	values.Add("client_id", c.clientID)
 	values.Add("grant_type", tokenGrantType)
 	values.Add("assertion", c.SAMLAssertion)
-	u.RawQuery = values.Encode()
+	reqOpts := []uhttp.RequestOption{
+		uhttp.WithFormBody(values.Encode()),
+	}
+	u := c.baseURL.JoinPath(c.baseURL.RawPath, tokenPath)
 	err := c.doRequest(ctx, http.MethodPost, u, reqOpts, nil, &response)
 	if err != nil {
 		return "", fmt.Errorf("failed to get bearer: %w", err)

@@ -1,0 +1,197 @@
+{
+ "count": 12,
+ "users": {
+  "rsmith": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10001",
+    "username": "rsmith",
+    "email": "rsmith@bestrunsap.example",
+    "Legal First Name": "Robin",
+    "Legal Last Name": "Smith",
+    "Job Title": "Account Executive",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "cdixon": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10002",
+    "username": "cdixon",
+    "email": "cdixon@bestrunsap.example",
+    "Legal First Name": "Casey",
+    "Legal Last Name": "Dixon",
+    "Job Title": "Sales Director",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "ajones": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10003",
+    "username": "ajones",
+    "email": "ajones@bestrunsap.example",
+    "Legal First Name": "Alex",
+    "Legal Last Name": "Jones",
+    "Job Title": "Consultant",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "bwong": {
+   "status": "disabled",
+   "profile": {
+    "userID": "10004",
+    "username": "bwong",
+    "email": "bwong@bestrunsap.example",
+    "Legal First Name": "Bailey",
+    "Legal Last Name": "Wong",
+    "Job Title": "Analyst",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Terminated",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "cmuller": {
+   "status": "disabled",
+   "profile": {
+    "userID": "10005",
+    "username": "cmuller",
+    "email": "cmuller@bestrunsap.example",
+    "Legal First Name": "Charlie",
+    "Legal Last Name": "Müller",
+    "Job Title": "Engineer",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Terminated",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "dgarcia": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10006",
+    "username": "dgarcia",
+    "email": "dgarcia@bestrunsap.example",
+    "Legal First Name": "Dana",
+    "Legal Last Name": "Garcia",
+    "Job Title": "Designer",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "",
+    "Employee Status": "",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "eokafor": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10007",
+    "username": "eokafor",
+    "email": "eokafor@bestrunsap.example",
+    "Legal First Name": "Eli",
+    "Legal Last Name": "Okafor",
+    "Job Title": "Support Lead",
+    "Manager userid": "",
+    "Manager Email": "",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": ""
+   }
+  },
+  "fçelik": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10008",
+    "username": "fçelik",
+    "email": "fcelik@bestrunsap.example",
+    "Legal First Name": "Zoë",
+    "Legal Last Name": "Ångström",
+    "Job Title": "Architect",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "gkim": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10009",
+    "username": "gkim",
+    "email": "gkim@bestrunsap.example",
+    "Legal First Name": "Gray",
+    "Legal Last Name": "Kim",
+    "Job Title": "VP Sales",
+    "Manager userid": "",
+    "Manager Email": "",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "hlee": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10010",
+    "username": "hlee",
+    "email": "hlee@bestrunsap.example",
+    "Legal First Name": "Harper",
+    "Legal Last Name": "Lee",
+    "Job Title": "Recruiter",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "ipatel": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10011",
+    "username": "ipatel",
+    "email": "ipatel@bestrunsap.example",
+    "Legal First Name": "Indy",
+    "Legal Last Name": "Patel",
+    "Job Title": "Finance Partner",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  },
+  "jnovak": {
+   "status": "enabled",
+   "profile": {
+    "userID": "10012",
+    "username": "jnovak",
+    "email": "jnovak@bestrunsap.example",
+    "Legal First Name": "Jules",
+    "Legal Last Name": "Novak",
+    "Job Title": "Operations Manager",
+    "Manager userid": "10009",
+    "Manager Email": "gkim@bestrunsap.example",
+    "Employee Class": "Regular",
+    "Employee Status": "Active",
+    "Company name": "BestRun Germany"
+   }
+  }
+ }
+}

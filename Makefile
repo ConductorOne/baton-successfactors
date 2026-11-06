@@ -40,3 +40,29 @@ add-dep:
 .PHONY: lint
 lint:
 	golangci-lint run --out-format=colored-line-number --timeout=3m
+
+MOCK_DIR ?= .mock
+MOCK_BIN = $(MOCK_DIR)/bin
+
+.PHONY: mock
+# Start the mock SuccessFactors server and print the BATON_* exports for the connector.
+mock:
+	@mkdir -p $(MOCK_BIN)
+	go build -o $(MOCK_BIN)/mock-successfactors ./test/mock-successfactors
+	@[ -f $(MOCK_DIR)/cert.pem ] || openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=mock \
+		-keyout $(MOCK_DIR)/key.pem -out $(MOCK_DIR)/cert.pem 2>/dev/null
+	@echo "Run these in a second terminal, then run: go run ./cmd/baton-successfactors"
+	@./test/mock-env.sh $(MOCK_DIR)
+	@echo
+	$(MOCK_BIN)/mock-successfactors -cert $(MOCK_DIR)/cert.pem
+
+.PHONY: test-mock
+# Run the connector and the baton CLI against the mock (the CI mock-test job).
+# baton must be on PATH, at or above the baton-sdk version in go.mod.
+test-mock:
+	@mkdir -p $(MOCK_BIN)
+	go build -o $(MOCK_BIN)/mock-successfactors ./test/mock-successfactors
+	go build -o $(MOCK_BIN)/baton-successfactors ./cmd/baton-successfactors
+	MOCK=$(abspath $(MOCK_BIN))/mock-successfactors \
+	BATON_SUCCESSFACTORS=$(abspath $(MOCK_BIN))/baton-successfactors \
+	WORKDIR=$(MOCK_DIR)/run ./test/verify-mock.sh
