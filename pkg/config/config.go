@@ -9,7 +9,6 @@ var (
 		"company-id",
 		field.WithDisplayName("Company ID"),
 		field.WithDescription("Company ID"),
-		field.WithPlaceholder("Your SuccessFactors Company ID"),
 		field.WithRequired(true),
 	)
 
@@ -17,28 +16,29 @@ var (
 		"cid",
 		field.WithDisplayName("Client ID"),
 		field.WithDescription("Client ID"),
-		field.WithPlaceholder("Your SuccessFactors Client ID"),
 		field.WithRequired(true),
 	)
 
 	// The key fields come in pairs: PEM contents (a string) or a PEM file. Set exactly one of each
-	// pair. The string fields keep the names and the meaning of earlier releases. The pair
-	// constraints are in FieldRelationships, so no field is WithRequired.
+	// pair. The string fields keep the names and the meaning of earlier releases. They are CLI-only:
+	// the C1 UI shows only the file fields. C1 maps saved public-key/private-key values to the file
+	// fields (FieldNameMapping in C1). The pair constraints are in FieldRelationships, so no field is
+	// WithRequired. baton-sdk leaves a constraint out of config_schema.json when it includes a
+	// CLI-only field, but it still enforces the constraint at runtime (CLI and Lambda).
 	PubKeyField = field.StringField(
 		"public-key",
 		field.WithDisplayName("Certificate (PEM contents)"),
-		field.WithDescription("Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. "+
-			"Use this field only if you cannot upload a file. Set one of the two fields."),
-		field.WithPlaceholder("Your SuccessFactors certificate"),
+		field.WithDescription("Certificate as PEM text (service mode and CLI only). "+
+			"Use public-key-file to pass a PEM file path instead. Set one of the two."),
 		field.WithIsSecret(true),
+		field.WithExportTarget(field.ExportTargetCLIOnly),
 	)
 
 	PubKeyFileField = field.FileUploadField(
 		"public-key-file",
 		[]string{".pem", ".crt"},
-		field.WithDisplayName("Certificate (PEM file)"),
-		field.WithDescription("Upload the certificate PEM file (recommended). "+
-			"Set this field or Certificate (PEM contents), not both."),
+		field.WithDisplayName("Certificate (PEM)"),
+		field.WithDescription("Upload the certificate PEM file. In service mode or the CLI, pass the path to the file."),
 		field.WithIsSecret(true),
 	)
 
@@ -46,7 +46,6 @@ var (
 		"saml-api-key",
 		field.WithDisplayName("SAML API key"),
 		field.WithDescription("SAML API Key"),
-		field.WithPlaceholder("Your SuccessFactors SAML API key"),
 		field.WithRequired(true),
 		field.WithIsSecret(true),
 	)
@@ -54,18 +53,17 @@ var (
 	PrivKeyField = field.StringField(
 		"private-key",
 		field.WithDisplayName("Private key (PEM contents)"),
-		field.WithDescription("Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. "+
-			"Use this field only if you cannot upload a file. Set one of the two fields."),
-		field.WithPlaceholder("Your SuccessFactors private key"),
+		field.WithDescription("Private key as PEM text (service mode and CLI only). "+
+			"Use private-key-file to pass a PEM file path instead. Set one of the two."),
 		field.WithIsSecret(true),
+		field.WithExportTarget(field.ExportTargetCLIOnly),
 	)
 
 	PrivKeyFileField = field.FileUploadField(
 		"private-key-file",
 		[]string{".pem", ".key"},
-		field.WithDisplayName("Private key (PEM file)"),
-		field.WithDescription("Upload the private key PEM file (recommended). "+
-			"Set this field or Private key (PEM contents), not both."),
+		field.WithDisplayName("Private key (PEM)"),
+		field.WithDescription("Upload the private key PEM file. In service mode or the CLI, pass the path to the file."),
 		field.WithIsSecret(true),
 	)
 
@@ -73,7 +71,6 @@ var (
 		"instance-url",
 		field.WithDisplayName("Instance URL"),
 		field.WithDescription("Your Success Factors domain, ex: https://successfactorsserver.com"),
-		field.WithPlaceholder("Your SuccessFactors instance URL"),
 		field.WithRequired(true),
 	)
 
@@ -81,7 +78,6 @@ var (
 		"issuer-url",
 		field.WithDisplayName("Issuer URL"),
 		field.WithDescription("Your SAML Issuer domain, ex: https://exampleissuer.com"),
-		field.WithPlaceholder("Your SuccessFactors issuer URL"),
 		field.WithRequired(true),
 	)
 
@@ -89,7 +85,6 @@ var (
 		"subject-name-id",
 		field.WithDisplayName("Subject name ID"),
 		field.WithDescription("Subject Name ID"),
-		field.WithPlaceholder("Your SuccessFactors subject name ID"),
 		field.WithRequired(true),
 	)
 

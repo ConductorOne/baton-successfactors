@@ -10,7 +10,7 @@ Please reference the [SAP SuccessFactors API Reference Guide- OData V2](https://
 1. SAML API key from when you register the connector as an OAuth application in SuccessFactors.
 2. Issuer URL from when you register the connector as an OAuth application in SuccessFactors.
 3. Client ID of the application from when you register the connector as an OAuth application in SuccessFactors.
-4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors. Also provide the matching private key. The `--public-key` and `--private-key` flags (and the `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` environment variables) take the PEM contents. Or use the `--public-key-file` and `--private-key-file` flags (and the `BATON_PUBLIC_KEY_FILE` and `BATON_PRIVATE_KEY_FILE` environment variables) with the paths to PEM files. Set one of each pair.
+4. X.509 Certificate for signing the SAML assertion from when you register the connector as an OAuth application in SuccessFactors. Also provide the matching private key. The `--public-key` and `--private-key` flags (and the `BATON_PUBLIC_KEY` and `BATON_PRIVATE_KEY` environment variables) take the PEM contents (for service mode and the CLI). Or use the `--public-key-file` and `--private-key-file` flags (and the `BATON_PUBLIC_KEY_FILE` and `BATON_PRIVATE_KEY_FILE` environment variables) with the paths to PEM files. Set one of each pair.
 5. User ID of the admin user that will be added to the SAML subject. Check out [Person/User IDs Used Within Employee Central - Employee Profile](https://userapps.support.sap.com/sap/support/knowledge/en/2493579) to learn more.
 6. Company ID for your company in SuccessFactors tenant. Follow [How to find the SAP SuccessFactors CompanyID](https://userapps.support.sap.com/sap/support/knowledge/en/2655655).
 7. Instance URL for SuccessFactor API calls, you can find your API server following SAP documentation here [List of SAP SuccessFactors API server](https://help.sap.com/docs/SAP_SUCCESSFACTORS_PLATFORM/d599f15995d348a1b45ba5603e2aba9b/af2b8d5437494b12be88fe374eba75b6.html)
@@ -123,11 +123,11 @@ Flags:
       --log-path strings                                 The file path to write logs to ($BATON_LOG_PATH)
       --otel-collector-endpoint string                   The endpoint of the OpenTelemetry collector to send observability data to (used for both tracing and logging if specific endpoints are not provided) ($BATON_OTEL_COLLECTOR_ENDPOINT)
       --parallel-sync                                    Deprecated: use --workers instead. ($BATON_PARALLEL_SYNC)
-      --private-key string                               Private key as PEM text. Upload the PEM file in Private key (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields. ($BATON_PRIVATE_KEY)
-      --private-key-file string                          Upload the private key PEM file (recommended). Set this field or Private key (PEM contents), not both. ($BATON_PRIVATE_KEY_FILE)
+      --private-key string                               Private key as PEM text (service mode and CLI only). Use private-key-file to pass a PEM file path instead. Set one of the two. ($BATON_PRIVATE_KEY)
+      --private-key-file string                          Upload the private key PEM file. In service mode or the CLI, pass the path to the file. ($BATON_PRIVATE_KEY_FILE)
   -p, --provisioning                                     This must be set in order for provisioning actions to be enabled ($BATON_PROVISIONING)
-      --public-key string                                Certificate as PEM text. Upload the PEM file in Certificate (PEM file) instead. Use this field only if you cannot upload a file. Set one of the two fields. ($BATON_PUBLIC_KEY)
-      --public-key-file string                           Upload the certificate PEM file (recommended). Set this field or Certificate (PEM contents), not both. ($BATON_PUBLIC_KEY_FILE)
+      --public-key string                                Certificate as PEM text (service mode and CLI only). Use public-key-file to pass a PEM file path instead. Set one of the two. ($BATON_PUBLIC_KEY)
+      --public-key-file string                           Upload the certificate PEM file. In service mode or the CLI, pass the path to the file. ($BATON_PUBLIC_KEY_FILE)
       --saml-api-key string                              required: SAML API Key ($BATON_SAML_API_KEY)
       --skip-entitlements-and-grants                     This must be set to skip syncing of entitlements and grants ($BATON_SKIP_ENTITLEMENTS_AND_GRANTS)
       --skip-full-sync                                   This must be set to skip a full sync ($BATON_SKIP_FULL_SYNC)
