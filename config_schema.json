@@ -127,27 +127,29 @@
       }
     },
     {
-      "name": "public-key",
+      "name": "public-key-file",
       "displayName": "Certificate (PEM)",
-      "description": "Public Key",
-      "isRequired": true,
+      "description": "Upload the certificate PEM file. In service mode or the CLI, pass the path to the file.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        }
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".crt"
+        ]
       }
     },
     {
-      "name": "private-key",
-      "displayName": "Private Key (PEM)",
-      "description": "Private Key",
-      "isRequired": true,
+      "name": "private-key-file",
+      "displayName": "Private key (PEM)",
+      "description": "Upload the private key PEM file. In service mode or the CLI, pass the path to the file.",
       "isSecret": true,
       "stringField": {
-        "rules": {
-          "isRequired": true
-        }
+        "type": "STRING_FIELD_TYPE_FILE_UPLOAD",
+        "allowedExtensions": [
+          ".pem",
+          ".key"
+        ]
       }
     },
     {

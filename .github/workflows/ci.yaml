@@ -9,8 +9,6 @@ jobs:
       BATON_COMPANY_ID: ${{ secrets.SF_COMPANY_ID }}
       BATON_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
       BATON_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
-      BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
-      BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
       BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
       BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
     steps:
@@ -22,11 +20,30 @@ jobs:
           go-version-file: go.mod
       - name: Build baton-successfactors
         run: go build ./cmd/baton-successfactors
+      - name: Write key files
+        # The connector reads --public-key-file and --private-key-file from file paths.
+        # The paths are exported with GITHUB_ENV, because the runner context
+        # is not available in the job-level env block.
+        env:
+          SF_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
+          SF_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
+        run: |
+          umask 077
+          printf '%s' "$SF_PUBLIC_KEY" > "$RUNNER_TEMP/sf-public-key.pem"
+          printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
+          echo "BATON_PUBLIC_KEY_FILE=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
+          echo "BATON_PRIVATE_KEY_FILE=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
+      # TODO(CXE-1578): remove continue-on-error from the two live steps when the
+      # api68sales tenant credentials are fixed. The mock-test job covers the connector.
       - name: Run baton-successfactors
+        id: live_sync
+        continue-on-error: true
         run: ./baton-successfactors
       - name: Install baton
-        run: ./scripts/get-baton.sh && mv baton /usr/local/bin
+        uses: ConductorOne/github-workflows/actions/get-baton@v4
       - name: Test baton resources
+        id: live_verify
+        continue-on-error: true
         env:
           BATON: baton
           BATON_SUCCESSFACTORS: ./baton-successfactors
@@ -34,9 +51,38 @@ jobs:
           BATON_COMPANY_ID: ${{ secrets.SF_COMPANY_ID }}
           BATON_INSTANCE_URL: ${{ secrets.SF_INSTANCE_URL }}
           BATON_ISSUER_URL: ${{ secrets.SF_ISSUER_URL }}
-          BATON_PRIVATE_KEY: ${{ secrets.SF_PRIVATE_KEY }}
-          BATON_PUBLIC_KEY: ${{ secrets.SF_PUBLIC_KEY }}
           BATON_SAML_API_KEY: ${{ secrets.SF_SAML_API_KEY }}
           BATON_SUBJECT_NAME_ID: ${{ secrets.SF_SUBJECT_NAME_ID }}
           BATON_PRINCIPAL: "rsmith"
         run: ./test/verify-resources.sh
+      - name: Warn when the live test failed
+        if: always()
+        run: |
+          if [ "${{ steps.live_sync.outcome }}" = "failure" ] || [ "${{ steps.live_verify.outcome }}" = "failure" ]; then
+            msg="Live SuccessFactors test failed (tenant credentials; see CXE-371). Non-blocking until the tenant is fixed."
+            echo "::warning::${msg}"
+            echo "${msg}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+  mock-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build the connector and the mock server
+        run: |
+          mkdir -p .mock/bin
+          go build -mod=vendor -o .mock/bin/baton-successfactors ./cmd/baton-successfactors
+          go build -mod=vendor -o .mock/bin/mock-successfactors ./test/mock-successfactors
+      - name: Install baton
+        uses: ConductorOne/github-workflows/actions/get-baton@v4
+      - name: Run the connector against the mock server
+        env:
+          MOCK: ${{ github.workspace }}/.mock/bin/mock-successfactors
+          BATON_SUCCESSFACTORS: ${{ github.workspace }}/.mock/bin/baton-successfactors
+          WORKDIR: ${{ runner.temp }}/mock
+        run: ./test/verify-mock.sh
