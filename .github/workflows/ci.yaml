@@ -33,7 +33,7 @@ jobs:
           printf '%s' "$SF_PRIVATE_KEY" > "$RUNNER_TEMP/sf-private-key.pem"
           echo "BATON_PUBLIC_KEY_FILE=$RUNNER_TEMP/sf-public-key.pem" >> "$GITHUB_ENV"
           echo "BATON_PRIVATE_KEY_FILE=$RUNNER_TEMP/sf-private-key.pem" >> "$GITHUB_ENV"
-      # TODO(CXE-371): remove continue-on-error from the two live steps when the
+      # TODO(CXE-1578): remove continue-on-error from the two live steps when the
       # api68sales tenant credentials are fixed. The mock-test job covers the connector.
       - name: Run baton-successfactors
         id: live_sync
