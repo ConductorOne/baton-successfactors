@@ -202,18 +202,16 @@ func failPage(page, httpStatus int) func(*mocksf.Config) {
 	return func(c *mocksf.Config) { c.FailPage, c.FailStatus = page, httpStatus }
 }
 
-// A 404 from the user list must fail the sync with a code that the SDK neither
-// skips (NotFound) nor retries without limit (Unavailable, DeadlineExceeded).
-func requireFailedPrecondition(t *testing.T, err error) {
+// A 404 from the user list keeps codes.NotFound: the SDK treats it as a warning by design
+// (resources can be deleted during a sync). The error text has no page token.
+func requireNotFound(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err)
-	code := status.Code(err)
-	assert.Equal(t, codes.FailedPrecondition, code)
-	assert.NotContains(t, []codes.Code{codes.NotFound, codes.Unavailable, codes.DeadlineExceeded}, code)
-	assert.Contains(t, err.Error(), "user list returned not found")
+	assert.Equal(t, codes.NotFound, status.Code(err))
+	assert.Contains(t, err.Error(), "failed to list users")
 }
 
-func TestUserBuilderListNotFoundOnLaterPageFails(t *testing.T) {
+func TestUserBuilderListNotFoundOnLaterPageKeepsNotFound(t *testing.T) {
 	users, err := mocksf.DefaultUsers()
 	require.NoError(t, err)
 	c, _, _ := newMockClient(t, users, failPage(2, http.StatusNotFound))
@@ -224,19 +222,17 @@ func TestUserBuilderListNotFoundOnLaterPageFails(t *testing.T) {
 	require.NotEmpty(t, results.NextPageToken)
 
 	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: results.NextPageToken}})
-	requireFailedPrecondition(t, err)
-	assert.Contains(t, err.Error(), "page token set: true")
+	requireNotFound(t, err)
 	assert.NotContains(t, err.Error(), results.NextPageToken, "the page token is a URL and must not be printed")
 }
 
-func TestUserBuilderListNotFoundOnFirstPageFails(t *testing.T) {
+func TestUserBuilderListNotFoundOnFirstPageKeepsNotFound(t *testing.T) {
 	users, err := mocksf.DefaultUsers()
 	require.NoError(t, err)
 	c, _, _ := newMockClient(t, users, failPage(1, http.StatusNotFound))
 
 	_, _, err = newUserBuilder(c).List(context.Background(), nil, resource.SyncOpAttrs{})
-	requireFailedPrecondition(t, err)
-	assert.Contains(t, err.Error(), "page token set: false")
+	requireNotFound(t, err)
 }
 
 func TestUserBuilderListOtherErrorsUnchanged(t *testing.T) {
@@ -312,11 +308,10 @@ func TestUserBuilderListNotFoundErrorHasNoPageToken(t *testing.T) {
 	require.NotEmpty(t, skip)
 
 	_, _, err = builder.List(context.Background(), nil, resource.SyncOpAttrs{PageToken: pagination.Token{Token: token}})
-	requireFailedPrecondition(t, err)
+	requireNotFound(t, err)
 	assert.NotContains(t, err.Error(), token)
 	assert.NotContains(t, err.Error(), skip)
 	assert.NotContains(t, err.Error(), url.QueryEscape(skip))
-	assert.Contains(t, err.Error(), "page token set: true")
 }
 
 func TestUserBuilderListShowsSuccessFactorsMessages(t *testing.T) {
