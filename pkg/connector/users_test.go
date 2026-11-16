@@ -279,8 +279,9 @@ func TestUserBuilderListNotFoundErrorHasNoPageToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// The server answers a page request with a 404 that echoes the full request URL in its body.
-	// Today the client error does not carry the response body, so this test also passes without
-	// redactPageToken. It guards against the body or the URL reaching the error text later.
+	// The client passes uhttp.WithErrorResponse (pkg/connector/client/successfactors.go), so the
+	// SuccessFactors error body is in the error text. This test depends on redactPageToken:
+	// without it, the page token from the echoed URL is in the error.
 	var server *httptest.Server
 	echo404 := func(w http.ResponseWriter, r *http.Request) bool {
 		if r.URL.Path != mocksf.EmpJobPath || r.URL.Query().Get("$skiptoken") == "" {
