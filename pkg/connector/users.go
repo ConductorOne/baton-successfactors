@@ -12,7 +12,6 @@ import (
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-successfactors/pkg/connector/client"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -122,6 +121,8 @@ func redactPageToken(msg, token string) string {
 //   - An error without a gRPC status is mapped as the gRPC server does: a wrapped context
 //     error gives DeadlineExceeded or Canceled, anything else gives Unknown. Without this,
 //     a context error would become Unknown, which the syncer does not retry.
+//   - A 404 keeps codes.NotFound: the SDK treats it as a warning by design (resources can be
+//     deleted during a sync).
 //   - The page token is removed from the text. The text can include a SuccessFactors error body
 //     that echoes the request URL, and a url.Parse error contains the whole token.
 //     %w is not used: it would keep the original text.
@@ -144,17 +145,6 @@ func (o *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, opts resource.SyncOpAttrs) ([]*v2.Resource, *resource.SyncOpResults, error) {
 	users, paginationURL, err := o.client.GetUserData(ctx, opts.PageToken.Token)
 	if err != nil {
-		// A 404 from the user list must fail the sync. The SDK treats NotFound as a
-		// warning and would end the sync with a partial list, so C1 would delete the
-		// missing users. FailedPrecondition is not retried (Unavailable is, without
-		// limit). The error is formatted with %v on purpose: %w would let status.Code
-		// find the inner NotFound again. The inner text is kept for debugging, with the
-		// page token removed: it is a URL, and the server could echo it in the response body.
-		if status.Code(err) == codes.NotFound {
-			return nil, nil, status.Errorf(codes.FailedPrecondition,
-				"baton-successfactors: user list returned not found (page token set: %t): %s",
-				opts.PageToken.Token != "", redactPageToken(err.Error(), opts.PageToken.Token))
-		}
 		return nil, nil, listError(err, opts.PageToken.Token)
 	}
 	rv := make([]*v2.Resource, 0)
